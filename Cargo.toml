@@ -5,4 +5,8 @@ authors = ["Random_Civvy <vomalexander@gmail.com>"]
 
 [dependencies]
 popstcl-core = { git = "https://gitlab.com/Random_Civvy/popstcl.git", branch="release" }
-conrod = "0.54.0"
+find_folder = "*"
+
+[dependencies.conrod]
+version = "0.54.0"
+features = ["winit", "glium"]
