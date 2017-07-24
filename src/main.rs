@@ -3,6 +3,9 @@ extern crate popstcl_core;
 extern crate conrod;
 extern crate find_folder;
 extern crate image;
+extern crate toml;
+#[macro_use]
+extern crate serde_derive;
 
 mod story;
 
