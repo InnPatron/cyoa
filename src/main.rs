@@ -7,6 +7,7 @@ extern crate toml;
 #[macro_use]
 extern crate serde_derive;
 
+mod library;
 mod story;
 
 fn main() {
