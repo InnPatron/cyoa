@@ -4,6 +4,8 @@ extern crate conrod;
 extern crate find_folder;
 extern crate image;
 
+mod story;
+
 fn main() {
     feature::main();
 }
