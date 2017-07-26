@@ -1,6 +1,11 @@
 use std::path::PathBuf;
+use std::fs;
+use std::io::Read;
+use toml;
 
-const manifest_name: &'static str = "cyoa";
+use find_folder;
+
+const manifest_name: &'static str = "cyoa.toml";
 
 pub struct Library(Vec<Story>);
 
@@ -16,4 +21,28 @@ pub struct Metadata {
     version: String,
     notes: Option<String>,
     main: String,
+}
+
+pub fn scan_library() -> Vec<Metadata> {
+    let mut library = Vec::new();
+    let libfolder = find_folder::Search::Parents(3).for_folder("library").unwrap();
+    for entry in fs::read_dir(libfolder).unwrap() {
+        let entry = entry.unwrap();
+        if entry.file_type().unwrap().is_dir() {
+            let mut manifest_path = entry.path();
+            manifest_path.push(manifest_name);
+            if manifest_path.exists() {
+                let metadata = {
+                    let mut buffer = String::new();
+                    let mut manifest = fs::File::open(manifest_path).unwrap();
+                    manifest.read_to_string(&mut buffer);
+                    buffer
+                };
+                if let Ok(metadata) = toml::from_str(&metadata) {
+                    library.push(metadata);
+                }
+            }
+        }
+    }
+    library
 }
