@@ -14,6 +14,6 @@ pub struct Metadata {
     name: String,
     author: Option<String>,
     version: String,
-    notes: Option<String>
-
+    notes: Option<String>,
+    main: String,
 }
