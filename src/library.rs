@@ -16,11 +16,11 @@ pub struct Story {
 
 #[derive(Deserialize)]
 pub struct Metadata {
-    name: String,
-    author: Option<String>,
-    version: String,
-    notes: Option<String>,
-    main: String,
+    pub name: String,
+    pub author: Option<String>,
+    pub version: String,
+    pub notes: Option<String>,
+    pub main: String,
 }
 
 pub fn scan_library() -> Vec<Metadata> {
