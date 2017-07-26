@@ -1,0 +1,4 @@
+name = "a"
+version = "0.1.0"
+main = "ch1.popstcl"
+author = "Random Civvy"
