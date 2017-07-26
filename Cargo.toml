@@ -6,6 +6,10 @@ authors = ["Random_Civvy <vomalexander@gmail.com>"]
 [dependencies]
 popstcl-core = { git = "https://gitlab.com/Random_Civvy/popstcl.git", branch="release" }
 find_folder = "*"
+image = "0.14.0"
+toml = "0.4.2"
+serde = "1.0.10"
+serde_derive = "1.0.10"
 
 [dependencies.conrod]
 version = "0.54.0"

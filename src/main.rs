@@ -2,6 +2,13 @@ extern crate popstcl_core;
 #[macro_use]
 extern crate conrod;
 extern crate find_folder;
+extern crate image;
+extern crate toml;
+#[macro_use]
+extern crate serde_derive;
+
+mod library;
+mod story;
 
 fn main() {
     feature::main();

@@ -1,0 +1,3 @@
+name = "Test Story"
+version = "0.1.0"
+main = "ch1.popstcl"
