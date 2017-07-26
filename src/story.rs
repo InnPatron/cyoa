@@ -7,6 +7,7 @@ use find_folder;
 use conrod::backend::glium::glium;
 use conrod::Ui;
 use conrod;
+use super::library::StoryHandle;
 
 pub struct StoryAssets {
     images: HashMap<String, glium::texture::Texture2d>,
@@ -14,9 +15,9 @@ pub struct StoryAssets {
 }
 
 impl StoryAssets {
-    fn load(root: PathBuf, ui: &mut Ui, display: &glium::Display) -> StoryAssets {
+    fn load(handle: &StoryHandle, ui: &mut Ui, display: &glium::Display) -> StoryAssets {
         let assets = find_folder::Search::Kids(1)
-            .of(root)
+            .of(handle.root.clone())
             .for_folder("assets")
             .expect("Unable to read assets folder");
         let images = find_folder::Search::Kids(1)
