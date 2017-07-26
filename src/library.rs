@@ -7,11 +7,11 @@ use find_folder;
 
 const manifest_name: &'static str = "cyoa.toml";
 
-pub struct Library(Vec<Story>);
+pub struct Library(Vec<StoryHandle>);
 
-pub struct Story {
-    root: PathBuf,
-    metadata: Metadata
+pub struct StoryHandle {
+    pub root: PathBuf,
+    pub metadata: Metadata
 }
 
 #[derive(Deserialize)]
@@ -23,7 +23,7 @@ pub struct Metadata {
     pub main: String,
 }
 
-pub fn scan_library() -> Vec<Metadata> {
+pub fn scan_library() -> Vec<StoryHandle> {
     let mut library = Vec::new();
     let libfolder = find_folder::Search::Parents(3).for_folder("library").unwrap();
     for entry in fs::read_dir(libfolder).unwrap() {
@@ -39,7 +39,10 @@ pub fn scan_library() -> Vec<Metadata> {
                     buffer
                 };
                 if let Ok(metadata) = toml::from_str(&metadata) {
-                    library.push(metadata);
+                    library.push(StoryHandle {
+                        root: entry.path(),
+                        metadata: metadata,
+                    });
                 }
             }
         }
