@@ -73,7 +73,7 @@ mod feature {
             (display, vm)
         };
 
-        handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
+        let handle = handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
         
     }
 
@@ -82,7 +82,7 @@ mod feature {
                            display: glium::Display,
                            renderer: &mut conrod::backend::glium::Renderer,
                            image_map: &conrod::image::Map<glium::texture::Texture2d>
-                           ) {
+                           ) -> StoryHandle {
         let title_ids = TitleIds::new(ui.widget_id_generator());
         let assets = Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
         let noto_sans = assets.join("fonts/NotoSans");
@@ -122,6 +122,8 @@ mod feature {
 
             {
                 if draw_title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
+                    // Play button hit
+                    return glium::glutin::ControlFlow::Break;
                 }
             }
 
@@ -136,6 +138,7 @@ mod feature {
 
             glium::glutin::ControlFlow::Continue
         });
+        handles.remove(selection.unwrap())
     }
 
     fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
