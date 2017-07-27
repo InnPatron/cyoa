@@ -28,15 +28,17 @@ mod feature {
 
     use super::library;
     use super::library::StoryHandle;
+    use story::StoryAssets;
 
     use popstcl_core::*;
+    use popstcl_core::internal::Vm;
 
     widget_ids! {
         struct TitleIds { canvas, option_row, title_row, story_list, scrollbar, title, option_right, option_left, game_start}
     }
 
     widget_ids! {
-        struct GameIds { background_img, text, option_list }
+        struct GameIds { canvas, option_row, text_row, background_img, text, option_list }
     }
 
     struct Fonts {
@@ -58,23 +60,10 @@ mod feature {
 
         let mut ui = conrod::UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
-        let title_ids = TitleIds::new(ui.widget_id_generator());
-
-        let assets = Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
-        let noto_sans = assets.join("fonts/NotoSans");
-
-        let fonts = Fonts {
-            regular: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Regular.ttf")).unwrap(),
-            italic: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Italic.ttf")).unwrap(),
-            bold: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Bold.ttf")).unwrap(),
-        };
+        let game_ids = TitleIds::new(ui.widget_id_generator());
 
         let mut renderer = conrod::backend::glium::Renderer::new(&display).unwrap();
         let image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
-
-        let mut handles = library::scan_library();
-        let mut selection = None;
-        let mut title_screen = true;
 
         let (vm_out, mut vm) = {
             use super::commands::Display;
@@ -83,6 +72,29 @@ mod feature {
             vm.insert_value("display", Value::Cmd(Box::new(Display(display.clone()))));
             (display, vm)
         };
+
+        handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
+        
+    }
+
+    fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop, 
+                           ui: &mut conrod::Ui, 
+                           display: glium::Display,
+                           renderer: &mut conrod::backend::glium::Renderer,
+                           image_map: &conrod::image::Map<glium::texture::Texture2d>
+                           ) {
+        let title_ids = TitleIds::new(ui.widget_id_generator());
+        let assets = Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let noto_sans = assets.join("fonts/NotoSans");
+        let mut handles = library::scan_library();
+
+        let fonts = Fonts {
+            regular: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Regular.ttf")).unwrap(),
+            italic: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Italic.ttf")).unwrap(),
+            bold: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Bold.ttf")).unwrap(),
+        };
+        let mut selection = None;
+
         events_loop.run_forever(|event| {
             match event.clone() {
                 glium::glutin::Event::WindowEvent { event, .. } => match event {
@@ -109,12 +121,7 @@ mod feature {
             ui.handle_event(input);
 
             {
-                if title_screen {
-                    if draw_title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
-                        title_screen = false;
-                    }
-                } else {
-                    //Game ui
+                if draw_title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
                 }
             }
 
@@ -218,6 +225,10 @@ mod feature {
 
         if let Some(s) = scrollbar { s.set(ui); }
         submit
+    }
+
+    fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, assets: &StoryAssets, vm: &mut Vm) {
+        
     }
 }
 
