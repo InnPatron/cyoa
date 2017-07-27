@@ -65,11 +65,7 @@ fn main() {
 
     vm.eval_str(&main).unwrap();
 
-    let context = Context {
-        vm_out: vm_out,
-        vm: vm,
-        assets: StoryAssets::load(&handle, &mut ui, &display)
-    };
+    let context = Context::new(&handle, &mut ui, &display);
 
     game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
 }

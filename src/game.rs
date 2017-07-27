@@ -14,8 +14,28 @@ use popstcl_core::internal::Vm;
 
 pub struct Context {
     pub vm_out: RcValue,
+    pub game_state: RcValue,
     pub vm: Vm,
     pub assets: StoryAssets,
+}
+
+impl Context {
+    pub fn new(handle: &StoryHandle, ui: &mut Ui, display: &glium::Display) -> Context {
+        use commands::*;
+
+        let mut vm = basic_vm();
+        let vm_out = RcValue::new(0.0.into_value());
+        let game_state = RcValue::new(0.0.into_value());
+        vm.insert_value("display", Value::Cmd(Box::new(Display(vm_out.clone()))));
+        vm.insert_value("state", Value::Cmd(Box::new(GameState(game_state.clone()))));
+
+        Context {
+            vm_out: vm_out,
+            game_state: game_state,
+            vm: vm,
+            assets: StoryAssets::load(handle, ui, display)
+        }
+    }
 }
 
 pub struct StoryAssets {
