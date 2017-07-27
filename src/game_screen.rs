@@ -23,7 +23,7 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                        image_map: &conrod::image::Map<glium::texture::Texture2d>,
                        context: Context
                        ) {
-    let game_ids = GameIds::new(ui.widget_id_generator());
+    let ids = GameIds::new(ui.widget_id_generator());
 
     events_loop.run_forever(|event| {
         match event.clone() {
@@ -50,7 +50,8 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
 
-        //draw_game_screen(ui, ids, assets, vm);
+        draw_game_screen(ui.set_widgets(), &ids, &context);
+
         if let Some(primitives) = ui.draw_if_changed() {
             renderer.fill(&display, primitives, &image_map);
             let mut target = display.draw();
@@ -64,6 +65,6 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
     });
 }
 
-//fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, assets: &StoryAssets, vm: &mut Vm) {
+fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context) {
     
-//}
+}
