@@ -26,6 +26,8 @@ use story::StoryAssets;
 
 use popstcl_core::*;
 use popstcl_core::internal::Vm;
+use std::fs::File;
+use std::io::Read;
 
 fn main() {
     const WIDTH: u32 = 1080;
@@ -52,5 +54,16 @@ fn main() {
     };
 
     let handle = title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
-    
+    let main = {
+        let mut buffer = String::new();
+        let mut path = handle.root.clone();
+        path.push(handle.metadata.main);
+        let mut file = File::open(path).unwrap();
+        file.read_to_string(&mut buffer);
+        buffer
+    };
+
+    vm.eval_str(&main).unwrap();
+
+    game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
 }
