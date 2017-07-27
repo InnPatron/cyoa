@@ -9,10 +9,13 @@ use conrod::Ui;
 use conrod;
 use super::library::StoryHandle;
 
+use popstcl_core::*;
+use popstcl_core::internal::Vm;
+
 pub struct Context {
-    vm_out: RcValue,
-    vm: Vm,
-    assets: StoryAssets,
+    pub vm_out: RcValue,
+    pub vm: Vm,
+    pub assets: StoryAssets,
 }
 
 pub struct StoryAssets {
@@ -21,7 +24,7 @@ pub struct StoryAssets {
 }
 
 impl StoryAssets {
-    fn load(handle: &StoryHandle, ui: &mut Ui, display: &glium::Display) -> StoryAssets {
+    pub fn load(handle: &StoryHandle, ui: &mut Ui, display: &glium::Display) -> StoryAssets {
         let assets = find_folder::Search::Kids(1)
             .of(handle.root.clone())
             .for_folder("assets")
