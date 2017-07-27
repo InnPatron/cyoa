@@ -9,7 +9,7 @@ extern crate toml;
 extern crate serde_derive;
 
 mod library;
-mod story;
+mod game;
 mod commands;
 mod title_screen;
 mod game_screen;

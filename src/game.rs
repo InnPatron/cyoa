@@ -9,6 +9,12 @@ use conrod::Ui;
 use conrod;
 use super::library::StoryHandle;
 
+pub struct Context {
+    vm_out: RcValue,
+    vm: Vm,
+    assets: StoryAssets,
+}
+
 pub struct StoryAssets {
     images: HashMap<String, glium::texture::Texture2d>,
     fonts: HashMap<String, conrod::text::font::Id>,
