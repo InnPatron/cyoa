@@ -70,6 +70,7 @@ mod feature {
 
         let mut handles = library::scan_library();
         let mut selection = None;
+        let mut title_screen = true;
 
         events_loop.run_forever(|event| {
             match event.clone() {
@@ -97,7 +98,13 @@ mod feature {
             ui.handle_event(input);
 
             {
-                title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection);
+                if title_screen {
+                    if title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
+                        title_screen = false;
+                    }
+                } else {
+                    //Game ui
+                }
             }
 
             if let Some(primitives) = ui.draw_if_changed() {
