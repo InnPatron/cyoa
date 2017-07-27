@@ -12,6 +12,7 @@ mod library;
 mod story;
 mod commands;
 mod title_screen;
+mod game_screen;
 
 use find_folder::Search;
 use conrod::{Scalar, Colorable, Widget, Sizeable, Positionable, Borderable, Labelable};
@@ -26,10 +27,6 @@ use story::StoryAssets;
 use popstcl_core::*;
 use popstcl_core::internal::Vm;
 
-widget_ids! {
-    struct GameIds { canvas, option_row, text_row, background_img, text, option_list }
-}
-
 fn main() {
     const WIDTH: u32 = 1080;
     const HEIGHT: u32 = 720;
@@ -43,8 +40,6 @@ fn main() {
 
     let mut ui = conrod::UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
-    let game_ids = GameIds::new(ui.widget_id_generator());
-
     let mut renderer = conrod::backend::glium::Renderer::new(&display).unwrap();
     let image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
 
@@ -57,9 +52,5 @@ fn main() {
     };
 
     let handle = title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
-    
-}
-
-fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, assets: &StoryAssets, vm: &mut Vm) {
     
 }
