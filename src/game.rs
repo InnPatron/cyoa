@@ -7,6 +7,7 @@ use find_folder;
 use conrod::backend::glium::glium;
 use conrod::Ui;
 use conrod;
+use conrod::image as conimage;
 use super::library::StoryHandle;
 
 use popstcl_core::*;
@@ -20,7 +21,10 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(handle: &StoryHandle, ui: &mut Ui, display: &glium::Display) -> Context {
+    pub fn new(handle: &StoryHandle, 
+               ui: &mut Ui, 
+               display: &glium::Display, 
+               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Context {
         use commands::*;
 
         let mut vm = basic_vm();
@@ -33,18 +37,21 @@ impl Context {
             vm_out: vm_out,
             game_state: game_state,
             vm: vm,
-            assets: StoryAssets::load(handle, ui, display)
+            assets: StoryAssets::load(handle, ui, display, image_map)
         }
     }
 }
 
 pub struct StoryAssets {
-    pub images: HashMap<String, glium::texture::Texture2d>,
+    pub images: HashMap<String, conimage::Id>,
     pub fonts: HashMap<String, conrod::text::font::Id>,
 }
 
 impl StoryAssets {
-    pub fn load(handle: &StoryHandle, ui: &mut Ui, display: &glium::Display) -> StoryAssets {
+    pub fn load(handle: &StoryHandle, 
+                ui: &mut Ui, 
+                display: &glium::Display,
+                image_map: &mut conimage::Map<glium::texture::Texture2d>) -> StoryAssets {
         let assets = find_folder::Search::Kids(1)
             .of(handle.root.clone())
             .for_folder("assets")
@@ -59,13 +66,15 @@ impl StoryAssets {
             .expect("Unable to read fonts folder");
         
         StoryAssets {
-            images: load_images(images, display),
+            images: load_images(images, display, image_map),
             fonts: load_fonts(fonts, ui),
         }
     }
 }
 
-fn load_images(image_folder: PathBuf, display: &glium::Display) -> HashMap<String, glium::texture::Texture2d> {
+fn load_images(image_folder: PathBuf, 
+               display: &glium::Display,
+               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> HashMap<String, conimage::Id> {
     let mut map = HashMap::new();
     
     for entry in fs::read_dir(image_folder).unwrap() {
@@ -85,7 +94,8 @@ fn load_images(image_folder: PathBuf, display: &glium::Display) -> HashMap<Strin
                 let dimensions = rgba_image.dimensions();
                 let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&rgba_image.into_raw(), dimensions);
                 let texture = glium::texture::Texture2d::new(display, raw_image).unwrap();
-                map.insert(name, texture);
+                let id = image_map.insert(texture);
+                map.insert(name, id);
             }
         }
     }
