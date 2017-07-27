@@ -99,7 +99,7 @@ mod feature {
 
             {
                 if title_screen {
-                    if title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
+                    if draw_title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
                         title_screen = false;
                     }
                 } else {
@@ -120,7 +120,7 @@ mod feature {
         });
     }
 
-    fn title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
+    fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
 
         let option_inner = &[
             (ids.option_left, widget::Canvas::new()
