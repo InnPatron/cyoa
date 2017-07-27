@@ -19,8 +19,8 @@ pub struct Context {
 }
 
 pub struct StoryAssets {
-    images: HashMap<String, glium::texture::Texture2d>,
-    fonts: HashMap<String, conrod::text::font::Id>,
+    pub images: HashMap<String, glium::texture::Texture2d>,
+    pub fonts: HashMap<String, conrod::text::font::Id>,
 }
 
 impl StoryAssets {
