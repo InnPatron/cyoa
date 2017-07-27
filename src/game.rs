@@ -37,7 +37,11 @@ impl StoryAssets {
             .of(assets.clone())
             .for_folder("fonts")
             .expect("Unable to read fonts folder");
-        unimplemented!();
+        
+        StoryAssets {
+            images: load_images(images, display),
+            fonts: load_fonts(fonts, ui),
+        }
     }
 }
 
