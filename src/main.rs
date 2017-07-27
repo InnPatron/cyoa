@@ -22,7 +22,7 @@ use conrod::widget;
 use conrod::color;
 
 use library::StoryHandle;
-use story::StoryAssets;
+use game::{Context, StoryAssets };
 
 use popstcl_core::*;
 use popstcl_core::internal::Vm;
@@ -57,7 +57,7 @@ fn main() {
     let main = {
         let mut buffer = String::new();
         let mut path = handle.root.clone();
-        path.push(handle.metadata.main);
+        path.push(&handle.metadata.main);
         let mut file = File::open(path).unwrap();
         file.read_to_string(&mut buffer);
         buffer
@@ -65,5 +65,11 @@ fn main() {
 
     vm.eval_str(&main).unwrap();
 
-    game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
+    let context = Context {
+        vm_out: vm_out,
+        vm: vm,
+        assets: StoryAssets::load(&handle, &mut ui, &display)
+    };
+
+    game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
 }

@@ -8,7 +8,7 @@ use conrod::color;
 
 use library;
 use library::StoryHandle;
-use story::StoryAssets;
+use game::{StoryAssets, Context};
 use popstcl_core::*;
 use popstcl_core::internal::Vm;
 
@@ -16,11 +16,12 @@ widget_ids! {
     struct GameIds { canvas, option_row, text_row, background_img, text, option_list }
 }
 
-pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop, 
+pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop, 
                        ui: &mut conrod::Ui, 
                        display: glium::Display,
                        renderer: &mut conrod::backend::glium::Renderer,
-                       image_map: &conrod::image::Map<glium::texture::Texture2d>
+                       image_map: &conrod::image::Map<glium::texture::Texture2d>,
+                       context: Context
                        ) {
     let game_ids = GameIds::new(ui.widget_id_generator());
 
@@ -49,6 +50,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
 
+        //draw_game_screen(ui, ids, assets, vm);
         if let Some(primitives) = ui.draw_if_changed() {
             renderer.fill(&display, primitives, &image_map);
             let mut target = display.draw();
@@ -62,6 +64,6 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
     });
 }
 
-fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, assets: &StoryAssets, vm: &mut Vm) {
+//fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, assets: &StoryAssets, vm: &mut Vm) {
     
-}
+//}
