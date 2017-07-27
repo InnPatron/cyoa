@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate popstcl_core;
 #[macro_use]
 extern crate conrod;
@@ -9,6 +10,7 @@ extern crate serde_derive;
 
 mod library;
 mod story;
+mod commands;
 
 fn main() {
     feature::main();
@@ -26,6 +28,8 @@ mod feature {
 
     use super::library;
     use super::library::StoryHandle;
+
+    use popstcl_core::*;
 
     widget_ids! {
         struct TitleIds { canvas, option_row, title_row, story_list, scrollbar, title, option_right, option_left, game_start}
@@ -72,6 +76,13 @@ mod feature {
         let mut selection = None;
         let mut title_screen = true;
 
+        let (vm_out, mut vm) = {
+            use super::commands::Display;
+            let mut vm = basic_vm();
+            let display = RcValue::new(0.0.into_value());
+            vm.insert_value("display", Value::Cmd(Box::new(Display(display.clone()))));
+            (display, vm)
+        };
         events_loop.run_forever(|event| {
             match event.clone() {
                 glium::glutin::Event::WindowEvent { event, .. } => match event {
