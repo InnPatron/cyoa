@@ -56,7 +56,7 @@ fn main() {
     };
 
     let context = Context::new(&handle, &mut ui, &display, &mut image_map);
-    context.vm.borrow_mut().eval_str(&main);
+    context.vm.borrow_mut().eval_str(&main).unwrap();
 
     game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
 }
