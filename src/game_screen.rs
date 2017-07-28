@@ -13,7 +13,7 @@ use popstcl_core::*;
 use popstcl_core::internal::Vm;
 
 widget_ids! {
-    struct GameIds { canvas, option_row, text_row, background_img, text, option_list }
+    struct GameIds { canvas, background_img, text_row, text_scroll, text, option_row, option_list }
 }
 
 pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop, 
@@ -49,9 +49,12 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
 
         // Handle the input with the `Ui`.
         ui.handle_event(input);
-
-        draw_game_screen(ui.set_widgets(), &ids, &context);
-
+        {
+            let game_state = context.game_state.borrow().try_into_number().expect("Game state should only be a number");
+            if *game_state == 0.0 {
+                draw_game_screen(ui.set_widgets(), &ids, &context);
+            }
+        }
         if let Some(primitives) = ui.draw_if_changed() {
             renderer.fill(&display, primitives, &image_map);
             let mut target = display.draw();
@@ -66,5 +69,37 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
 }
 
 fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context) {
-    
+
+    let text_row = widget::Canvas::new().color(color::BLACK)
+        .scroll_kids_vertically();
+    let option_row = widget::Canvas::new().color(color::GREY);
+    let canvas = widget::Canvas::new().flow_down(&[
+        (ids.text_row, text_row),
+        (ids.option_row, option_row)
+    ])
+        .set(ids.canvas, ui);
+
+    let font = context.assets.fonts.get(
+        &context.vm.borrow().get_value("dispfont")
+            .map(|v| (**v.try_into_string().expect("display font should only be a string")).to_string())
+            .unwrap()//.expect("Require variable 'dispfont' to determine font of the display")
+    ).expect("Unknown font").clone();
+
+    let font_size = 24;
+
+    let text: &str = &(**context.vm_out.borrow().try_into_string().expect("vm_out should be a string"));
+
+    widget::Text::new(text)
+        .font_id(font)
+        .top_left_with_margin_on(ids.text_row, 5.)
+        .padded_w_of(ids.text_row, 10.)
+        .left_justify()
+        .color(color::WHITE)
+        .font_size(font_size)
+        .set(ids.text, ui);
+    widget::Scrollbar::y_axis(ids.text_row)
+        .auto_hide(false)
+        .thickness(14.)
+        .color(color::WHITE)
+        .set(ids.text_scroll, ui);
 }
