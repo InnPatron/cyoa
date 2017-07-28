@@ -72,7 +72,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
 
     let text_row = widget::Canvas::new().color(color::BLACK)
         .scroll_kids_vertically();
-    let option_row = widget::Canvas::new().color(color::GREY);
+    let option_row = widget::Canvas::new().color(color::BLACK);
     let canvas = widget::Canvas::new().flow_down(&[
         (ids.text_row, text_row),
         (ids.option_row, option_row)
@@ -102,4 +102,69 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
         .thickness(14.)
         .color(color::WHITE)
         .set(ids.text_scroll, ui);
+
+    {
+        let options = context.vm.borrow()
+            .get_value("options")
+            .expect("Missing 'options' (List) to display options")
+            .try_into_list()
+            .expect("'options' field should be a List");
+
+        let len = options.inner().len();
+        let item_h = 50.0;
+        let font_size = item_h as conrod::FontSize / 2;
+        let (mut events, scrollbar) = widget::ListSelect::single(len)
+            .flow_down()
+            .item_size(item_h)
+            .scrollbar_next_to()
+            .padded_w_of(ids.option_row, 15.0)
+            .top_left_with_margin_on(ids.option_row, 15.0)
+            .set(ids.option_row, ui);
+
+        while let Some(event) = events.next(ui, |i| true) {
+            use conrod::widget::list_select::Event;
+            match event {
+                Event::Item(item) => {
+                    let value = options.inner().get(item.i).unwrap();
+                    let value = value.borrow()
+                        .try_into_object()
+                        .expect("Options can only be objects");
+                    let display = value.get("display")
+                        .expect("Options should have a 'display' String");
+                    let display: &str = &**display
+                        .borrow()
+                        .try_into_string()
+                        .expect("'display' should only be a String");
+
+                    let (color, label_color) = (color::GREY, color::BLACK);
+                    let button = widget::Button::new()
+                        .border(1.0)
+                        .color(color)
+                        .label(display)
+                        .left_justify_label()
+                        .label_font_size(font_size)
+                        .label_color(label_color);
+                    item.set(button, ui);
+                }
+
+                Event::Selection(index) => {
+                    let value = options.inner().get(index).unwrap();
+                    let value = value.borrow()
+                        .try_into_object()
+                        .expect("Options can only be objects");
+
+                    let consequence = value.get("consequence")
+                        .expect("Options should have a 'consequnce' String");
+                    let consequence: &str = &**consequence
+                        .borrow()
+                        .try_into_string()
+                        .expect("'consequence' should only be a String");
+                    context.vm.borrow_mut().eval_str(consequence).unwrap();
+                }
+                _ => (),
+            }
+        }
+
+        if let Some(s) = scrollbar { s.set(ui); }
+    }
 }
