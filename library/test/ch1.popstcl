@@ -1,2 +1,15 @@
 mset dispfont common;
 display "Hello world";
+
+mset options [list];
+list_append $options [object display "Change Display" consequence { display "Changed to something else!"; }];
+list_append $options [object display "NOP" consequence { }];
+list_append $options [object display "Continue" consequence { 
+	test_consequence;
+}];
+
+proc test_consequence {
+	display "NEXT";
+	mmut options [list];
+	list_append $options [object display "Test" consequence { display "END"; }];
+};
