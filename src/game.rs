@@ -9,6 +9,7 @@ use conrod::Ui;
 use conrod;
 use conrod::image as conimage;
 use super::library::StoryHandle;
+use std::cell::RefCell;
 
 use popstcl_core::*;
 use popstcl_core::internal::Vm;
@@ -16,7 +17,7 @@ use popstcl_core::internal::Vm;
 pub struct Context {
     pub vm_out: RcValue,
     pub game_state: RcValue,
-    pub vm: Vm,
+    pub vm: RefCell<Vm>,
     pub assets: StoryAssets,
 }
 
@@ -36,7 +37,7 @@ impl Context {
         Context {
             vm_out: vm_out,
             game_state: game_state,
-            vm: vm,
+            vm: RefCell::new(vm),
             assets: StoryAssets::load(handle, ui, display, image_map)
         }
     }
