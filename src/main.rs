@@ -45,7 +45,10 @@ fn main() {
     let mut renderer = conrod::backend::glium::Renderer::new(&display).unwrap();
     let mut image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
 
-    let handle = title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
+    let handle = match title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map) {
+        Some(handle) => handle,
+        None => return,
+    };
     let main = {
         let mut buffer = String::new();
         let mut path = handle.root.clone();

@@ -34,7 +34,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
                        display: glium::Display,
                        renderer: &mut conrod::backend::glium::Renderer,
                        image_map: &conrod::image::Map<glium::texture::Texture2d>
-                       ) -> StoryHandle {
+                       ) -> Option<StoryHandle> {
     let title_ids = TitleIds::new(ui.widget_id_generator());
     let assets = Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
     let noto_sans = assets.join("fonts/NotoSans");
@@ -90,7 +90,11 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
 
         glium::glutin::ControlFlow::Continue
     });
-    handles.remove(selection.unwrap())
+    if let Some(selection) = selection {
+        Some(handles.remove(selection))
+    } else {
+        None
+    }
 }
 
 fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
