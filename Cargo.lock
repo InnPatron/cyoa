@@ -5,7 +5,7 @@ dependencies = [
  "conrod 0.54.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "find_folder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "popstcl-core 0.14.1 (git+https://gitlab.com/Random_Civvy/popstcl.git?branch=release)",
+ "popstcl-core 0.15.0 (git+https://gitlab.com/Random_Civvy/popstcl.git?branch=release)",
  "serde 1.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -666,8 +666,8 @@ dependencies = [
 
 [[package]]
 name = "popstcl-core"
-version = "0.14.1"
-source = "git+https://gitlab.com/Random_Civvy/popstcl.git?branch=release#26308a25a7db11590824aeb07b9a158fa2ab6570"
+version = "0.15.0"
+source = "git+https://gitlab.com/Random_Civvy/popstcl.git?branch=release#3b36078418dc704db57ad87da5336f2ba06b832e"
 dependencies = [
  "ccrc 0.1.0 (git+https://gitlab.com/Random_Civvy/cc.git)",
  "itertools 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1068,7 +1068,7 @@ dependencies = [
 "checksum pistoncore-input 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ab36532c344e412c5ed79a259ae01b26259cbdc96b0ab219ba3eb3dfcdf59df5"
 "checksum pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "3a8b4c6b8165cd1a1cd4b9b120978131389f64bdaf456435caa41e630edba903"
 "checksum png 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6535266009941ceac9a17e6d681cd2adc75611cd4833db853282e8d4c470239c"
-"checksum popstcl-core 0.14.1 (git+https://gitlab.com/Random_Civvy/popstcl.git?branch=release)" = "<none>"
+"checksum popstcl-core 0.15.0 (git+https://gitlab.com/Random_Civvy/popstcl.git?branch=release)" = "<none>"
 "checksum quote 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "7a6e920b65c65f10b2ae65c831a81a073a89edd28c7cce89475bff467ab4167a"
 "checksum rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "022e0636ec2519ddae48154b028864bdce4eaf7d35226ab8e65c611be97b189d"
 "checksum rayon 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)" = "b614fe08b6665cb9a231d07ac1364b0ef3cb3698f1239ee0c4c3a88a524f54c8"
