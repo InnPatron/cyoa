@@ -1,1 +1,2 @@
-print "hello world";
+mset dispfont common;
+display "Hello world";
