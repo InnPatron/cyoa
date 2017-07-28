@@ -28,7 +28,7 @@ impl Context {
         use commands::*;
 
         let mut vm = basic_vm();
-        let vm_out = RcValue::new(0.0.into_value());
+        let vm_out = RcValue::new(String::new().into_value());
         let game_state = RcValue::new(0.0.into_value());
         vm.insert_value("display", Value::Cmd(Box::new(Display(vm_out.clone()))));
         vm.insert_value("state", Value::Cmd(Box::new(GameState(game_state.clone()))));
