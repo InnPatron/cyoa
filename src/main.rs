@@ -45,14 +45,6 @@ fn main() {
     let mut renderer = conrod::backend::glium::Renderer::new(&display).unwrap();
     let mut image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
 
-    let (vm_out, mut vm) = {
-        use commands::Display;
-        let mut vm = basic_vm();
-        let display = RcValue::new(0.0.into_value());
-        vm.insert_value("display", Value::Cmd(Box::new(Display(display.clone()))));
-        (display, vm)
-    };
-
     let handle = title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map);
     let main = {
         let mut buffer = String::new();
@@ -63,9 +55,8 @@ fn main() {
         buffer
     };
 
-    vm.eval_str(&main).unwrap();
-
     let context = Context::new(&handle, &mut ui, &display, &mut image_map);
+    context.vm.borrow_mut().eval_str(&main);
 
     game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
 }
