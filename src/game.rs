@@ -44,7 +44,7 @@ impl Context {
 }
 
 pub struct StoryAssets {
-    pub images: HashMap<String, conimage::Id>,
+    pub images: HashMap<String, ImageHandle>,
     pub fonts: HashMap<String, conrod::text::font::Id>,
 }
 
@@ -75,7 +75,7 @@ impl StoryAssets {
 
 fn load_images(image_folder: PathBuf, 
                display: &glium::Display,
-               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> HashMap<String, conimage::Id> {
+               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> HashMap<String, ImageHandle> {
     let mut map = HashMap::new();
     
     for entry in fs::read_dir(image_folder).unwrap() {
@@ -95,8 +95,10 @@ fn load_images(image_folder: PathBuf,
                 let dimensions = rgba_image.dimensions();
                 let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&rgba_image.into_raw(), dimensions);
                 let texture = glium::texture::Texture2d::new(display, raw_image).unwrap();
+                let w = texture.get_width();
+                let h = texture.get_height().unwrap();
                 let id = image_map.insert(texture);
-                map.insert(name, id);
+                map.insert(name, ImageHandle { id: id, h:h, w:w });
             }
         }
     }
@@ -127,4 +129,10 @@ fn load_fonts(font_folder: PathBuf, ui: &mut Ui) -> HashMap<String, conrod::text
     }
 
     map
+}
+
+pub struct ImageHandle {
+    pub id: conimage::Id,
+    pub h: u32,
+    pub w: u32,
 }
