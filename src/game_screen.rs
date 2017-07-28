@@ -13,7 +13,11 @@ use popstcl_core::*;
 use popstcl_core::internal::Vm;
 
 widget_ids! {
-    struct GameIds { canvas, background_img, text_row, text_scroll, text, option_row, option_list }
+    struct GameIds { canvas, background, text_row, text_scroll, text, option_row, option_list }
+}
+
+widget_ids! {
+    struct IdleScreenIds { canvas, background }
 }
 
 pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop, 
@@ -24,8 +28,10 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                        context: Context
                        ) {
     let ids = GameIds::new(ui.widget_id_generator());
+    let idle_ids = IdleScreenIds::new(ui.widget_id_generator());
 
     events_loop.run_forever(|event| {
+        let mut click = false;
         match event.clone() {
             glium::glutin::Event::WindowEvent { event, .. } => match event {
                 glium::glutin::WindowEvent::Closed |
@@ -36,6 +42,10 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                     },
                     ..
                 } => return glium::glutin::ControlFlow::Break,
+
+                glium::glutin::WindowEvent::MouseLeft { .. } => {
+                    click = true;
+                },
                 _ => (),
             },
             _ => (),
@@ -50,9 +60,15 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
         {
-            let game_state = context.game_state.borrow().try_into_number().expect("Game state should only be a number");
+            let mut game_state = context.game_state.borrow_mut().try_into_number().expect("Game state should only be a number");
             if *game_state == 0.0 {
                 draw_game_screen(ui.set_widgets(), &ids, &context);
+            } else if *game_state == 1.0 {
+                if click {
+                    *game_state = 0.0;
+                } else {
+                    draw_image_screen(ui.set_widgets(), &idle_ids, &context);
+                }
             }
         }
         if let Some(primitives) = ui.draw_if_changed() {
@@ -66,6 +82,24 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
 
         glium::glutin::ControlFlow::Continue
     });
+}
+
+fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &Context) {
+    widget::Canvas::new()
+        .color(color::BLACK)
+        .set(ids.canvas, ui);
+
+    let image_name = context.vm.borrow().get("background")
+        .expect("'background' variable expected to display background");
+    let image_name = image_name.borrow()
+        .try_into_string()
+        .expect("'background' variable should only be a String");
+    let image = context.assets.images.get(&**image_name)
+        .expect(&format!("{} is an invalid image (PNG's only, name without file extension)", &**image_name));
+    widget::Image::new(image.id)
+        .w_h(image.w as f64, image.h as f64)
+        .middle()
+        .set(ids.background, ui);
 }
 
 fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context) {
