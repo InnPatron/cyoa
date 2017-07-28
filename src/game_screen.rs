@@ -119,7 +119,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
             .scrollbar_next_to()
             .padded_w_of(ids.option_row, 15.0)
             .top_left_with_margin_on(ids.option_row, 15.0)
-            .set(ids.option_row, ui);
+            .set(ids.option_list, ui);
 
         while let Some(event) = events.next(ui, |i| true) {
             use conrod::widget::list_select::Event;
