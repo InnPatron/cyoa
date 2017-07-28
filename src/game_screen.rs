@@ -87,7 +87,10 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
 
     let font_size = 24;
 
-    let text: &str = &(**context.vm_out.borrow().try_into_string().expect("vm_out should be a string"));
+    let text: &str = &**context.vm_out
+        .inner_clone()
+        .try_into_string()
+        .expect("vm_out should be a string");
 
     widget::Text::new(text)
         .font_id(font)
