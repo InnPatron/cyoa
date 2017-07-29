@@ -11,5 +11,13 @@ list_append $options [object display "Continue" consequence {
 proc test_consequence {
 	display "NEXT";
 	mmut options [list];
-	list_append $options [object display "Test" consequence { display "END"; }];
+	list_append $options [object display "Test" consequence { end; }];
+};
+
+proc end {
+	display "END";
+	mmut options [list];
+
+	mset background "test";
+	state 1;
 };
