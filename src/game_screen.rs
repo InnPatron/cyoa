@@ -31,7 +31,6 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
     let idle_ids = IdleScreenIds::new(ui.widget_id_generator());
 
     events_loop.run_forever(|event| {
-        let mut click = false;
         match event.clone() {
             glium::glutin::Event::WindowEvent { event, .. } => match event {
                 glium::glutin::WindowEvent::Closed |
@@ -43,9 +42,6 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                     ..
                 } => return glium::glutin::ControlFlow::Break,
 
-                glium::glutin::WindowEvent::MouseLeft { .. } => {
-                    click = true;
-                },
                 _ => (),
             },
             _ => (),
@@ -60,14 +56,12 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
         {
-            let mut game_state = context.game_state.borrow_mut().try_into_number().expect("Game state should only be a number");
-            if *game_state == 0.0 {
+            let mut game_state: f64 = *context.game_state.borrow().try_into_number().expect("Game state should only be a number");
+            if game_state == 0.0 {
                 draw_game_screen(ui.set_widgets(), &ids, &context);
-            } else if *game_state == 1.0 {
-                if click {
-                    *game_state = 0.0;
-                } else {
-                    draw_image_screen(ui.set_widgets(), &idle_ids, &context);
+            } else if game_state == 1.0 {
+                if draw_image_screen(ui.set_widgets(), &idle_ids, &context) {
+                    context.vm.borrow_mut().eval_str("state 0;");
                 }
             }
         }
@@ -84,7 +78,7 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
     });
 }
 
-fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &Context) {
+fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &Context) -> bool {
     widget::Canvas::new()
         .color(color::BLACK)
         .set(ids.canvas, ui);
@@ -96,10 +90,17 @@ fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &
         .expect("'background' variable should only be a String");
     let image = context.assets.images.get(&**image_name)
         .expect(&format!("{} is an invalid image (PNG's only, name without file extension)", &**image_name));
-    widget::Image::new(image.id)
-        .w_h(image.w as f64, image.h as f64)
+    if widget::Button::image(image.id)
+        .border(0.0)
+        .wh_of(ids.canvas)
+        //.w_h(image.w as conrod::Scalar, image.h as conrod::Scalar)
         .middle()
-        .set(ids.background, ui);
+        .set(ids.background, ui)
+        .was_clicked() {
+            true
+    } else {
+            false
+    }
 }
 
 fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context) {
