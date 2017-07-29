@@ -1,0 +1,38 @@
+mset dispfont common;
+
+proc main {
+	init;
+
+	display "You sit alone in a bar with a giant mug of beer in front of you.";
+	prompt;
+};
+
+proc prompt {
+	mmut options [list];
+	list_append $options [object display "Take a sip." consequence { drink; }];
+};
+
+proc init {
+	mset player [object health 100];
+	mset drink_counter 0;
+};
+
+proc drink {
+	fmut $player health [sub $player.health 10];
+	mut drink_counter [add $drink_counter 1];
+	if [<= $player.health 0] {
+		end;
+	} else {
+		lset message "You take a sip. This is drink number $drink_counter. What now?";
+		display #message;
+		prompt;
+	};
+};
+
+
+proc end {
+	display "YOU DIED";
+	mmut options [list];
+};
+
+main;
