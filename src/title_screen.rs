@@ -37,7 +37,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
                        ) -> Option<StoryHandle> {
     let title_ids = TitleIds::new(ui.widget_id_generator());
     let assets = Search::KidsThenParents(3, 3).for_folder("assets").expect("Could not find assets folder");
-    let noto_sans = assets.join("fonts/NotoSans").expect("Could not find fonts folder");
+    let noto_sans = assets.join("fonts/NotoSans");
     let mut handles = library::scan_library();
 
     let fonts = Fonts {
