@@ -23,12 +23,6 @@ widget_ids! {
         }
 }
 
-struct Fonts {
-    regular: Id,
-    italic: Id,
-    bold: Id
-}
-
 pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop, 
                        ui: &mut conrod::Ui, 
                        display: glium::Display,
@@ -40,11 +34,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
     let noto_sans = assets.join("fonts/NotoSans");
     let mut handles = library::scan_library();
 
-    let fonts = Fonts {
-        regular: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Regular.ttf")).unwrap(),
-        italic: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Italic.ttf")).unwrap(),
-        bold: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Bold.ttf")).unwrap(),
-    };
+    let font = ui.fonts.insert_from_file(noto_sans.join("NotoSans-Regular.ttf")).unwrap();
     let mut selection = None;
 
     events_loop.run_forever(|event| {
@@ -73,7 +63,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
         ui.handle_event(input);
 
         {
-            if draw_title_screen(ui.set_widgets(), &title_ids, &fonts, &handles, &mut selection) {
+            if draw_title_screen(ui.set_widgets(), &title_ids, &font, &handles, &mut selection) {
                 // Play button hit
                 return glium::glutin::ControlFlow::Break;
             }
@@ -97,7 +87,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
     }
 }
 
-fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
+fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, font: &Id, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
 
     let option_inner = &[
         (ids.option_left, widget::Canvas::new()
@@ -113,10 +103,8 @@ fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, 
     ])
         .set(ids.canvas, ui);
 
-
-    const TITLE_PAD: Scalar = 15.0;
     widget::Text::new("CYOA")
-        .font_id(fonts.italic)
+        .font_id(font.clone())
         .middle_of(ids.title_row)
         .center_justify()
         .color(color::WHITE)
@@ -144,7 +132,7 @@ fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, fonts: &Fonts, 
         .set(ids.story_list, ui);
     
 
-    while let Some(event) = events.next(ui, |i| true) {
+    while let Some(event) = events.next(ui, |_| true) {
         use conrod::widget::list_select::Event;
         match event {
             Event::Item(item) => {

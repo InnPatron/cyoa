@@ -5,9 +5,7 @@ use toml;
 
 use find_folder;
 
-const manifest_name: &'static str = "cyoa.toml";
-
-pub struct Library(Vec<StoryHandle>);
+const MANIFEST_NAME: &'static str = "cyoa.toml";
 
 pub struct StoryHandle {
     pub root: PathBuf,
@@ -30,12 +28,12 @@ pub fn scan_library() -> Vec<StoryHandle> {
         let entry = entry.unwrap();
         if entry.file_type().unwrap().is_dir() {
             let mut manifest_path = entry.path();
-            manifest_path.push(manifest_name);
+            manifest_path.push(MANIFEST_NAME);
             if manifest_path.exists() {
                 let metadata = {
                     let mut buffer = String::new();
                     let mut manifest = fs::File::open(manifest_path).unwrap();
-                    manifest.read_to_string(&mut buffer);
+                    manifest.read_to_string(&mut buffer).unwrap();
                     buffer
                 };
                 if let Ok(metadata) = toml::from_str(&metadata) {

@@ -1,16 +1,11 @@
-use find_folder::Search;
 use conrod;
-use conrod::{Scalar, Colorable, Widget, Sizeable, Positionable, Borderable, Labelable};
+use conrod::{Colorable, Widget, Sizeable, Positionable, Borderable, Labelable};
 use conrod::backend::glium::glium;
-use conrod::text::font::Id;
 use conrod::widget;
 use conrod::color;
 
-use library;
-use library::StoryHandle;
-use game::{StoryAssets, Context};
+use game::Context;
 use popstcl_core::*;
-use popstcl_core::internal::Vm;
 
 widget_ids! {
     struct GameIds { canvas, background, text_row, text_scroll, text, option_row, option_list }
@@ -56,12 +51,12 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
         {
-            let mut game_state: f64 = *context.game_state.borrow().try_into_number().expect("Game state should only be a number");
+            let game_state: f64 = *context.game_state.borrow().try_into_number().expect("Game state should only be a number");
             if game_state == 0.0 {
                 draw_game_screen(ui.set_widgets(), &ids, &context);
             } else if game_state == 1.0 {
                 if draw_image_screen(ui.set_widgets(), &idle_ids, &context) {
-                    context.vm.borrow_mut().eval_str("state 0;");
+                    context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 }
             }
         }
@@ -108,7 +103,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
     let text_row = widget::Canvas::new().color(color::BLACK)
         .scroll_kids_vertically();
     let option_row = widget::Canvas::new().color(color::BLACK);
-    let canvas = widget::Canvas::new().flow_down(&[
+    widget::Canvas::new().flow_down(&[
         (ids.text_row, text_row),
         (ids.option_row, option_row)
     ])
@@ -159,7 +154,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
             .top_left_with_margin_on(ids.option_row, 15.0)
             .set(ids.option_list, ui);
 
-        while let Some(event) = events.next(ui, |i| true) {
+        while let Some(event) = events.next(ui, |_| true) {
             use conrod::widget::list_select::Event;
             match event {
                 Event::Item(item) => {

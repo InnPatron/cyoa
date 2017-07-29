@@ -14,18 +14,10 @@ mod commands;
 mod title_screen;
 mod game_screen;
 
-use find_folder::Search;
-use conrod::{Scalar, Colorable, Widget, Sizeable, Positionable, Borderable, Labelable};
 use conrod::backend::glium::glium;
-use conrod::text::font::Id;
-use conrod::widget;
-use conrod::color;
 
-use library::StoryHandle;
-use game::{Context, StoryAssets };
+use game::Context;
 
-use popstcl_core::*;
-use popstcl_core::internal::Vm;
 use std::fs::File;
 use std::io::Read;
 
@@ -54,7 +46,7 @@ fn main() {
         let mut path = handle.root.clone();
         path.push(&handle.metadata.main);
         let mut file = File::open(path).unwrap();
-        file.read_to_string(&mut buffer);
+        file.read_to_string(&mut buffer).unwrap();
         buffer
     };
 

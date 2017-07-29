@@ -5,6 +5,8 @@ use popstcl_core::RcValue;
 pub struct Display(pub RcValue);
 
 impl Cmd for Display {
+    
+    #[allow(unused)]
     fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, ExecErr> {
         exact_args!(args, 1);
         {
@@ -20,6 +22,7 @@ impl Cmd for Display {
 pub struct GameState(pub RcValue);
 
 impl Cmd for GameState {
+    #[allow(unused)]
     fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, ExecErr> {
         max_args!(args, 1);
         if args.len() == 0 {
