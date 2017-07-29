@@ -25,7 +25,7 @@ pub struct Metadata {
 
 pub fn scan_library() -> Vec<StoryHandle> {
     let mut library = Vec::new();
-    let libfolder = find_folder::Search::Parents(3).for_folder("library").unwrap();
+    let libfolder = find_folder::Search::ParentsThenKids(3, 3).for_folder("library").expect("Could not find library");
     for entry in fs::read_dir(libfolder).unwrap() {
         let entry = entry.unwrap();
         if entry.file_type().unwrap().is_dir() {
