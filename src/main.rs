@@ -37,21 +37,23 @@ fn main() {
     let mut renderer = conrod::backend::glium::Renderer::new(&display).unwrap();
     let mut image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
 
-    let handle = match title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map) {
-        Some(handle) => handle,
-        None => return,
-    };
-    let main = {
-        let mut buffer = String::new();
-        let mut path = handle.root.clone();
-        path.push(&handle.metadata.main);
-        let mut file = File::open(path).unwrap();
-        file.read_to_string(&mut buffer).unwrap();
-        buffer
-    };
+    loop {
+        let handle = match title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map) {
+            Some(handle) => handle,
+            None => return,
+        };
+        let main = {
+            let mut buffer = String::new();
+            let mut path = handle.root.clone();
+            path.push(&handle.metadata.main);
+            let mut file = File::open(path).unwrap();
+            file.read_to_string(&mut buffer).unwrap();
+            buffer
+        };
 
-    let context = Context::new(&handle, &mut ui, &display, &mut image_map);
-    context.vm.borrow_mut().eval_str(&main).unwrap();
+        let context = Context::new(&handle, &mut ui, &display, &mut image_map);
+        context.vm.borrow_mut().eval_str(&main).unwrap();
 
-    game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
+        game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
+    }
 }
