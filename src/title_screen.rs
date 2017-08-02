@@ -65,7 +65,9 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
         {
             if draw_title_screen(ui.set_widgets(), &title_ids, &font, &handles, &mut selection) {
                 // Play button hit
-                return glium::glutin::ControlFlow::Break;
+                if selection.is_some() {
+                    return glium::glutin::ControlFlow::Break;
+                }
             }
         }
 
@@ -80,6 +82,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
 
         glium::glutin::ControlFlow::Continue
     });
+
     if let Some(selection) = selection {
         Some(handles.remove(selection))
     } else {
