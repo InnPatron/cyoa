@@ -58,6 +58,9 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                 if draw_image_screen(ui.set_widgets(), &idle_ids, &context) {
                     context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 }
+            } else if game_state == 2.0 {
+                context.vm.borrow_mut().eval_str("state 0").unwrap();
+                return glium::glutin::ControlFlow::Break;
             }
         }
         if let Some(primitives) = ui.draw_if_changed() {
