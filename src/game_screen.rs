@@ -35,8 +35,10 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                         ..
                     },
                     ..
-                } => return glium::glutin::ControlFlow::Break,
-
+                } => { 
+                    context.vm.borrow_mut().eval_str("state 2.0;").unwrap(); 
+                    ()
+                },
                 _ => (),
             },
             _ => (),
@@ -59,7 +61,7 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                     context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 }
             } else if game_state == 2.0 {
-                context.vm.borrow_mut().eval_str("state 0").unwrap();
+                context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 return glium::glutin::ControlFlow::Break;
             }
         }
