@@ -7,7 +7,7 @@ pub struct Display(pub RcValue);
 impl Cmd for Display {
     
     #[allow(unused)]
-    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, ExecErr> {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
         exact_args!(args, 1);
         {
             cir_extract!(args[0] => String)?;
@@ -23,7 +23,7 @@ pub struct GameState(pub RcValue);
 
 impl Cmd for GameState {
     #[allow(unused)]
-    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, ExecErr> {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
         max_args!(args, 1);
         if args.len() == 0 {
             return Ok(ExecSignal::NextInstruction(Some(self.0.clone())));
