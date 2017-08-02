@@ -5,6 +5,8 @@ use conrod::backend::glium::glium;
 use conrod::text::font::Id;
 use conrod::widget;
 use conrod::color;
+use conrod::event::Input;
+use conrod::input::{Button, Key};
 
 use super::library;
 use super::library::StoryHandle;
@@ -40,14 +42,7 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
     events_loop.run_forever(|event| {
         match event.clone() {
             glium::glutin::Event::WindowEvent { event, .. } => match event {
-                glium::glutin::WindowEvent::Closed |
-                glium::glutin::WindowEvent::KeyboardInput {
-                    input: glium::glutin::KeyboardInput {
-                        virtual_keycode: Some(glium::glutin::VirtualKeyCode::Escape),
-                        ..
-                    },
-                    ..
-                } => return glium::glutin::ControlFlow::Break,
+                glium::glutin::WindowEvent::Closed => return glium::glutin::ControlFlow::Break,
                 _ => (),
             },
             _ => (),
@@ -59,9 +54,17 @@ pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop,
             Some(input) => input,
         };
 
+        if let Input::Press(ref button) = input {
+            if let Button::Keyboard(ref key) = *button {
+                match *key {
+                    Key::Escape => return glium::glutin::ControlFlow::Break,
+                    _ => (),
+                }
+            }
+        }
+
         // Handle the input with the `Ui`.
         ui.handle_event(input);
-
         {
             if draw_title_screen(ui.set_widgets(), &title_ids, &font, &handles, &mut selection) {
                 // Play button hit
