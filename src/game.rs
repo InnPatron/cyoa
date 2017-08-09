@@ -53,7 +53,8 @@ pub struct VmPipes {
 pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
     let mut builder = std_env();
     builder.insert_value("display", Value::Cmd(Box::new(Display(pipes.clone()))));
-    builder.insert_value("state", Value::Cmd(Box::new(GameState(pipes))));
+    builder.insert_value("state", Value::Cmd(Box::new(GameState(pipes.clone()))));
+    builder.insert_value("cyoa", Value::Cmd(Box::new(NewMod(pipes.clone()))));
     builder
 }
 
