@@ -1,8 +1,12 @@
+use std::rc::Rc;
+use std::cell::{RefCell, Cell};
+
 use popstcl_core::internal::*;
 use popstcl_core::RcValue;
+use game::VmPipes;
 
 #[derive(Clone, Debug)]
-pub struct Display(pub RcValue);
+pub struct Display(pub Rc<VmPipes>);
 
 impl Cmd for Display {
     
@@ -12,26 +16,25 @@ impl Cmd for Display {
         {
             cir_extract!(args[0] => String)?;
         }
-        *self.0.borrow_mut() = args[0].value.inner_clone();
+        *self.0.vm_out.borrow_mut() = args[0].value.to_string();
         
         Ok(ExecSignal::NextInstruction(None))
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct GameState(pub RcValue);
+pub struct GameState(pub Rc<VmPipes>);
 
 impl Cmd for GameState {
     #[allow(unused)]
     fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
         max_args!(args, 1);
         if args.len() == 0 {
-            return Ok(ExecSignal::NextInstruction(Some(self.0.clone())));
+            let state = self.0.game_state.get() as f64;
+            return Ok(ExecSignal::NextInstruction(Some(state.into())));
         } else {
-            {
-                cir_extract!(args[0] => Number)?;
-            }
-            *self.0.borrow_mut() = args[0].value.inner_clone();
+            let v: i32 = *cir_extract!(args[0] => Number)? as i32;
+            self.0.game_state.set(v);
         }
         
         Ok(ExecSignal::NextInstruction(None))

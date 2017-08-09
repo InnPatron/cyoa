@@ -53,14 +53,14 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
         {
-            let game_state: f64 = *context.game_state.borrow().try_into_number().expect("Game state should only be a number");
-            if game_state == 0.0 {
+            let game_state: i32 = context.pipes.game_state.get();
+            if game_state == 0 {
                 draw_game_screen(ui.set_widgets(), &ids, &context);
-            } else if game_state == 1.0 {
+            } else if game_state == 1 {
                 if draw_image_screen(ui.set_widgets(), &idle_ids, &context) {
                     context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 }
-            } else if game_state == 2.0 {
+            } else if game_state == 2 {
                 context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 return glium::glutin::ControlFlow::Break;
             }
@@ -122,12 +122,9 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
 
     let font_size = 24;
 
-    let text: &str = &**context.vm_out
-        .inner_clone()
-        .try_into_string()
-        .expect("vm_out should be a string");
+    let text: String = context.pipes.vm_out.borrow().to_string();
 
-    widget::Text::new(text)
+    widget::Text::new(&*text)
         .font_id(font)
         .top_left_with_margin_on(ids.text_row, 5.)
         .padded_w_of(ids.text_row, 10.)
