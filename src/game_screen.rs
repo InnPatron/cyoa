@@ -6,7 +6,7 @@ use conrod::color;
 use conrod::event::Input;
 use conrod::input::{Button, Key};
 
-use game::Context;
+use game::*;
 use popstcl_core::*;
 
 widget_ids! {
@@ -139,13 +139,8 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
         .set(ids.text_scroll, ui);
 
     {
-        let options = context.vm.borrow()
-            .get_value("options")
-            .expect("Missing 'options' (List) to display options")
-            .try_into_list()
-            .expect("'options' field should be a List");
-
-        let len = options.inner().len();
+        let options = context.pipes.options.borrow().clone();
+        let len = options.len();
         let item_h = 50.0;
         let font_size = item_h as conrod::FontSize / 2;
         let (mut events, scrollbar) = widget::ListSelect::single(len)
@@ -160,22 +155,13 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
             use conrod::widget::list_select::Event;
             match event {
                 Event::Item(item) => {
-                    let value = options.inner().get(item.i).unwrap();
-                    let value = value.borrow()
-                        .try_into_object()
-                        .expect("Options can only be objects");
-                    let display = value.get("display")
-                        .expect("Options should have a 'display' String");
-                    let display: &str = &**display
-                        .borrow()
-                        .try_into_string()
-                        .expect("'display' should only be a String");
+                    let &GameOption {ref display, ..}= options.get(item.i).unwrap();
 
                     let (color, label_color) = (color::GREY, color::BLACK);
                     let button = widget::Button::new()
                         .border(1.0)
                         .color(color)
-                        .label(display)
+                        .label(&display)
                         .left_justify_label()
                         .label_font_size(font_size)
                         .label_color(label_color);
@@ -183,18 +169,8 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
                 }
 
                 Event::Selection(index) => {
-                    let value = options.inner().get(index).unwrap();
-                    let value = value.borrow()
-                        .try_into_object()
-                        .expect("Options can only be objects");
-
-                    let consequence = value.get("consequence")
-                        .expect("Options should have a 'consequnce' String");
-                    let consequence: &str = &**consequence
-                        .borrow()
-                        .try_into_string()
-                        .expect("'consequence' should only be a String");
-                    context.vm.borrow_mut().eval_str(consequence).unwrap();
+                    let GameOption {consequence, ..} = options.get(index).unwrap().clone();
+                    context.vm.borrow_mut().eval_program(&consequence).unwrap();
                 }
                 _ => (),
             }

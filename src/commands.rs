@@ -3,7 +3,7 @@ use std::cell::{RefCell, Cell};
 
 use popstcl_core::internal::*;
 use popstcl_core::RcValue;
-use game::VmPipes;
+use game::{VmPipes, GameOption};
 
 #[derive(Clone, Debug)]
 pub struct Display(pub Rc<VmPipes>);
@@ -51,5 +51,39 @@ impl Cmd for NewMod {
         let env = game::cyoa_env(self.0.clone()).consume();
         
         Ok(ExecSignal::NextInstruction(Some(StdModule::new(env).into())))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ClearOptions(pub Rc<VmPipes>);
+
+impl Cmd for ClearOptions {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
+        exact_args!(args, 0);
+        self.0.options.borrow_mut().clear();
+
+        Ok(ExecSignal::NextInstruction(None))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct AddOption(pub Rc<VmPipes>);
+
+impl Cmd for AddOption {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
+        use std::cell::RefMut;
+        exact_args!(args, 2);
+
+        let display = cir_extract!(args[0] => String)?;
+        let consequence = cir_extract!(args[1] => String)?;
+        let consequence = parse_program(&consequence)?;
+
+        let mut borrow: RefMut<Vec<GameOption>> = self.0.options.borrow_mut();
+        borrow.push(GameOption {
+            display: display.to_string(),
+            consequence: consequence
+        });
+
+        Ok(ExecSignal::NextInstruction(None))
     }
 }

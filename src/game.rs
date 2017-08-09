@@ -30,8 +30,10 @@ impl Context {
         use commands::*;
 
         let pipes = VmPipes {
-            vm_out: RefCell::new(String::new()),
-            game_state: Cell::new(0),
+            vm_out: Default::default(),
+            game_state: Default::default(),
+            options: Default::default(),
+            font: Default::default()
         };
         let pipes = Rc::new(pipes);
         let mut vm = Vm::new_with_main_module(cyoa_env(pipes.clone()).consume());
@@ -48,6 +50,8 @@ impl Context {
 pub struct VmPipes {
     pub vm_out: RefCell<String>,
     pub game_state: Cell<i32>,
+    pub options: RefCell<Vec<GameOption>>,
+    pub font: RefCell<String>,
 }
 
 pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
@@ -55,6 +59,9 @@ pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
     builder.insert_value("display", Value::Cmd(Box::new(Display(pipes.clone()))));
     builder.insert_value("state", Value::Cmd(Box::new(GameState(pipes.clone()))));
     builder.insert_value("cyoa", Value::Cmd(Box::new(NewMod(pipes.clone()))));
+    builder.insert_value("option", Value::Cmd(Box::new(AddOption(pipes.clone()))));
+    builder.insert_value("clear-options", Value::Cmd(Box::new(ClearOptions(pipes.clone()))));
+    builder.insert_value("font", Value::Cmd(Box::new(Font(pipes.clone()))));
     builder
 }
 
@@ -150,4 +157,10 @@ pub struct ImageHandle {
     pub id: conimage::Id,
     pub h: u32,
     pub w: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct GameOption {
+    pub display: String,
+    pub consequence: Program,
 }

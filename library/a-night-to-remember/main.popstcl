@@ -8,8 +8,8 @@ proc main {
 };
 
 proc prompt {
-	mmut options [list];
-	list_append $options [object display "Take a sip." consequence { drink; }];
+	clear-options;	
+	option "Take a sip." { drink; };
 };
 
 proc init {
@@ -32,7 +32,7 @@ proc drink {
 
 proc end {
 	display "YOU DIED";
-	mmut options [list];
+	clear-options;
 };
 
 main;

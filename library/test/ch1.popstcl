@@ -1,22 +1,22 @@
 mset dispfont common;
 display "Hello world";
 
-mset options [list];
-list_append $options [object display "Change Display" consequence { display "Changed to something else!"; }];
-list_append $options [object display "NOP" consequence { }];
-list_append $options [object display "Continue" consequence { 
+clear-options;
+option "Change Display" { display "Changed to something else!"; };
+option "NOP" { };
+option "Continue" { 
 	test_consequence;
-}];
+};
 
 proc test_consequence {
 	display "NEXT";
-	mmut options [list];
-	list_append $options [object display "Test" consequence { end; }];
+	clear-options;
+	option "Test" { end; };
 };
 
 proc end {
 	display "END";
-	mmut options [list];
+	clear-options;
 
 	mset background "test";
 	state 1;
