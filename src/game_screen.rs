@@ -122,7 +122,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
 
     let font_size = 24;
 
-    let text = context.pipes.vm_out.borrow();
+    let text: String = context.pipes.vm_out.borrow().to_string();
 
     widget::Text::new(&*text)
         .font_id(font)
