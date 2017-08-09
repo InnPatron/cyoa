@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate popstcl_core;
 #[macro_use]
+extern crate popstcl_derive;
+#[macro_use]
 extern crate conrod;
 extern crate find_folder;
 extern crate image;
