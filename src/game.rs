@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 use std::fs;
+use std::rc::Rc;
+use std::cell::{Cell, RefCell};
 
 use image;
 use find_folder;
@@ -9,16 +11,15 @@ use conrod::Ui;
 use conrod;
 use conrod::image as conimage;
 use super::library::StoryHandle;
-use std::cell::RefCell;
 
 use popstcl_core::*;
 use popstcl_core::internal::Vm;
+use commands::*;
 
 pub struct Context {
-    pub vm_out: RcValue,
-    pub game_state: RcValue,
     pub vm: RefCell<Vm>,
     pub assets: StoryAssets,
+    pub pipes: Rc<VmPipes>
 }
 
 impl Context {
@@ -28,19 +29,32 @@ impl Context {
                image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Context {
         use commands::*;
 
-        let mut vm = basic_vm();
-        let vm_out = RcValue::new(String::new().into_value());
-        let game_state = RcValue::new(0.0.into_value());
-        vm.insert_value("display", Value::Cmd(Box::new(Display(vm_out.clone()))));
-        vm.insert_value("state", Value::Cmd(Box::new(GameState(game_state.clone()))));
+        let pipes = VmPipes {
+            vm_out: RefCell::new(String::new()),
+            game_state: Cell::new(0),
+        };
+        let pipes = Rc::new(pipes);
+        let mut vm = Vm::new_with_main_module(cyoa_env(pipes.clone()).consume());
 
         Context {
-            vm_out: vm_out,
-            game_state: game_state,
             vm: RefCell::new(vm),
-            assets: StoryAssets::load(handle, ui, display, image_map)
+            assets: StoryAssets::load(handle, ui, display, image_map),
+            pipes: pipes 
         }
     }
+}
+
+#[derive(Debug)]
+pub struct VmPipes {
+    pub vm_out: RefCell<String>,
+    pub game_state: Cell<i32>,
+}
+
+pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
+    let mut builder = std_env();
+    builder.insert_value("display", Value::Cmd(Box::new(Display(pipes.clone()))));
+    builder.insert_value("state", Value::Cmd(Box::new(GameState(pipes))));
+    builder
 }
 
 pub struct StoryAssets {
