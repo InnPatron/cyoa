@@ -40,3 +40,16 @@ impl Cmd for GameState {
         Ok(ExecSignal::NextInstruction(None))
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct NewMod(pub Rc<VmPipes>);
+
+impl Cmd for NewMod {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
+        exact_args!(args, 0);
+        use game;
+        let env = game::cyoa_env(self.0.clone()).consume();
+        
+        Ok(ExecSignal::NextInstruction(Some(StdModule::new(env).into())))
+    }
+}
