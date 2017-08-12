@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::cell::{RefCell, Cell};
+use std::io::Read;
 
 use popstcl_core::internal::*;
 use popstcl_core::RcValue;
@@ -101,4 +102,25 @@ impl Cmd for DispFont {
 
         Ok(ExecSignal::NextInstruction(None))
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct FetchScript(pub Rc<VmPipes>);
+
+impl Cmd for FetchScript {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
+        exact_args!(args, 1);
+
+        let name = cir_extract!(args[0] => String)?;
+        let mut script_handle = self.0.scripts.get(&**name)
+            .ok_or(CmdErr::Generic(format!("Could not find script: {}", name)))?
+            .try_clone()
+            .map_err(|ioerr| CmdErr::Generic(format!("IO Err: {}", ioerr)))?;
+
+        let mut buffer = String::new();
+        script_handle.read_to_string(&mut buffer)
+            .map_err(|ioerr| CmdErr::Generic(format!("IO Err: {}", ioerr)))?;
+
+        Ok(ExecSignal::NextInstruction(Some(buffer.into())))
+    }  
 }

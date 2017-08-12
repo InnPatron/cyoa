@@ -21,3 +21,6 @@ proc end {
 	mset background "test";
 	state 1;
 };
+
+eval [fetch test];
+print $test_act.bla;

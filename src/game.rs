@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::rc::Rc;
 use std::cell::{Cell, RefCell};
+use std::fs::File;
 
 use image;
 use find_folder;
@@ -29,18 +30,20 @@ impl Context {
                image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Context {
         use commands::*;
 
+        let assets = StoryAssets::load(handle, ui, display, image_map);
         let pipes = VmPipes {
             vm_out: Default::default(),
             game_state: Default::default(),
             options: Default::default(),
-            dispfont: Default::default()
+            dispfont: Default::default(),
+            scripts: assets.scripts.clone(),
         };
         let pipes = Rc::new(pipes);
         let mut vm = Vm::new_with_main_module(cyoa_env(pipes.clone()).consume());
 
         Context {
             vm: RefCell::new(vm),
-            assets: StoryAssets::load(handle, ui, display, image_map),
+            assets: assets,
             pipes: pipes 
         }
     }
@@ -52,6 +55,7 @@ pub struct VmPipes {
     pub game_state: Cell<i32>,
     pub options: RefCell<Vec<GameOption>>,
     pub dispfont: RefCell<String>,
+    pub scripts: Rc<HashMap<String, File>>,
 }
 
 pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
@@ -62,12 +66,14 @@ pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
     builder.insert_value("option", Value::Cmd(Box::new(AddOption(pipes.clone()))));
     builder.insert_value("clear-options", Value::Cmd(Box::new(ClearOptions(pipes.clone()))));
     builder.insert_value("dispfont", Value::Cmd(Box::new(DispFont(pipes.clone()))));
+    builder.insert_value("fetch", Value::Cmd(Box::new(FetchScript(pipes.clone()))));
     builder
 }
 
 pub struct StoryAssets {
     pub images: HashMap<String, ImageHandle>,
     pub fonts: HashMap<String, conrod::text::font::Id>,
+    pub scripts: Rc<HashMap<String, File>>,
 }
 
 impl StoryAssets {
@@ -87,10 +93,15 @@ impl StoryAssets {
             .of(assets.clone())
             .for_folder("fonts")
             .expect("Unable to read fonts folder");
+        let scripts = find_folder::Search::Kids(1)
+            .of(handle.root.clone())
+            .for_folder("scripts")
+            .expect("Unable to read src folder");
         
         StoryAssets {
             images: load_images(images, display, image_map),
             fonts: load_fonts(fonts, ui),
+            scripts: Rc::new(load_scripts(scripts)),
         }
     }
 }
@@ -150,6 +161,29 @@ fn load_fonts(font_folder: PathBuf, ui: &mut Ui) -> HashMap<String, conrod::text
         }
     }
 
+    map
+}
+
+fn load_scripts(scripts_folder: PathBuf) -> HashMap<String, File> {
+    let mut map = HashMap::new();
+    for entry in fs::read_dir(scripts_folder).unwrap() {
+        let entry = entry.unwrap();
+        if entry.file_type().unwrap().is_file() == false {
+            continue;
+        } else {
+            let path = entry.path();
+            let name = path.file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+            let extension = path.extension().unwrap();
+            if extension == "popstcl" {
+                let file = File::open(path.clone()).unwrap();
+                map.insert(name, file);
+            }
+        }
+    }
     map
 }
 
