@@ -1,4 +1,4 @@
-mset dispfont common;
+dispfont common;
 display "Hello world";
 
 clear-options;

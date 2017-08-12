@@ -87,3 +87,18 @@ impl Cmd for AddOption {
         Ok(ExecSignal::NextInstruction(None))
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct DispFont(pub Rc<VmPipes>);
+
+impl Cmd for DispFont {
+    fn execute(&self, stack: &mut Stack, args: Vec<CIR>) -> Result<ExecSignal, CmdErr> {
+        exact_args!(args, 1);
+
+        let font = cir_extract!(args[0] => String)?;
+        let mut borrow = self.0.dispfont.borrow_mut();
+        *borrow = font.to_string();
+
+        Ok(ExecSignal::NextInstruction(None))
+    }
+}

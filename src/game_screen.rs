@@ -115,9 +115,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
         .set(ids.canvas, ui);
 
     let font = context.assets.fonts.get(
-        &context.vm.borrow().get_value("dispfont")
-            .map(|v| (**v.try_into_string().expect("display font should only be a string")).to_string())
-            .unwrap()//.expect("Require variable 'dispfont' to determine font of the display")
+        &*context.pipes.dispfont.borrow()
     ).expect("Unknown font").clone();
 
     let font_size = 24;

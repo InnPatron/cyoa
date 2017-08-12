@@ -33,7 +33,7 @@ impl Context {
             vm_out: Default::default(),
             game_state: Default::default(),
             options: Default::default(),
-            font: Default::default()
+            dispfont: Default::default()
         };
         let pipes = Rc::new(pipes);
         let mut vm = Vm::new_with_main_module(cyoa_env(pipes.clone()).consume());
@@ -51,7 +51,7 @@ pub struct VmPipes {
     pub vm_out: RefCell<String>,
     pub game_state: Cell<i32>,
     pub options: RefCell<Vec<GameOption>>,
-    pub font: RefCell<String>,
+    pub dispfont: RefCell<String>,
 }
 
 pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
@@ -61,7 +61,7 @@ pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
     builder.insert_value("cyoa", Value::Cmd(Box::new(NewMod(pipes.clone()))));
     builder.insert_value("option", Value::Cmd(Box::new(AddOption(pipes.clone()))));
     builder.insert_value("clear-options", Value::Cmd(Box::new(ClearOptions(pipes.clone()))));
-    builder.insert_value("font", Value::Cmd(Box::new(Font(pipes.clone()))));
+    builder.insert_value("dispfont", Value::Cmd(Box::new(DispFont(pipes.clone()))));
     builder
 }
 
