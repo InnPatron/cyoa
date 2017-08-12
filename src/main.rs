@@ -44,16 +44,15 @@ fn main() {
             Some(handle) => handle,
             None => return,
         };
-        let main = {
-            let mut buffer = String::new();
-            let mut path = handle.root.clone();
-            path.push(&handle.metadata.main);
-            let mut file = File::open(path).unwrap();
-            file.read_to_string(&mut buffer).unwrap();
-            buffer
-        };
 
         let context = Context::new(&handle, &mut ui, &display, &mut image_map);
+        let main = {
+            let mut buffer = String::new();
+            let mut handle = context.assets.scripts.get("main")
+                .expect("Could not find main.popstcl in scripts folder");
+            handle.read_to_string(&mut buffer).unwrap();
+            buffer
+        };
         context.vm.borrow_mut().eval_str(&main).unwrap();
 
         game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);

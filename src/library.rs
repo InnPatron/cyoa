@@ -18,7 +18,6 @@ pub struct Metadata {
     pub author: Option<String>,
     pub version: String,
     pub notes: Option<String>,
-    pub main: String,
 }
 
 pub fn scan_library() -> Vec<StoryHandle> {
