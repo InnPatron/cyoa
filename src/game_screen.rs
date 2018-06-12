@@ -7,7 +7,6 @@ use conrod::event::Input;
 use conrod::input::{Button, Key};
 
 use game::*;
-use popstcl_core::*;
 
 widget_ids! {
     struct GameIds { canvas, background, text_row, text_scroll, text, option_row, option_list }
@@ -53,6 +52,7 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
         {
+            /*
             let game_state: i32 = context.pipes.game_state.get();
             if game_state == 0 {
                 draw_game_screen(ui.set_widgets(), &ids, &context);
@@ -64,6 +64,8 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                 context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 return glium::glutin::ControlFlow::Break;
             }
+            */
+            // TODO: Handle game state
         }
         if let Some(primitives) = ui.draw_if_changed() {
             renderer.fill(&display, primitives, &image_map);
@@ -83,8 +85,10 @@ fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &
         .color(color::BLACK)
         .set(ids.canvas, ui);
 
+    // TODO: get background image
+    /* 
     let image_name = context.vm.borrow().get("background")
-        .expect("'background' variable expected to display background");
+        //.expect("'background' variable expected to display background");
     let image_name = image_name.borrow()
         .try_into_string()
         .expect("'background' variable should only be a String");
@@ -101,6 +105,8 @@ fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &
     } else {
             false
     }
+    */
+    unimplemented!()
 }
 
 fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context) {
@@ -114,6 +120,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
     ])
         .set(ids.canvas, ui);
 
+    /*
     let font = context.assets.fonts.get(
         &*context.pipes.dispfont.borrow()
     ).expect("Unknown font").clone();
@@ -176,4 +183,6 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
 
         if let Some(s) = scrollbar { s.set(ui); }
     }
+    */
+    unimplemented!()
 }

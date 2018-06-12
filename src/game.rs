@@ -13,14 +13,8 @@ use conrod;
 use conrod::image as conimage;
 use super::library::StoryHandle;
 
-use popstcl_core::*;
-use popstcl_core::internal::Vm;
-use commands::*;
-
 pub struct Context {
-    pub vm: RefCell<Vm>,
     pub assets: StoryAssets,
-    pub pipes: Rc<VmPipes>
 }
 
 impl Context {
@@ -28,46 +22,10 @@ impl Context {
                ui: &mut Ui, 
                display: &glium::Display, 
                image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Context {
-        use commands::*;
 
         let assets = StoryAssets::load(handle, ui, display, image_map);
-        let pipes = VmPipes {
-            vm_out: Default::default(),
-            game_state: Default::default(),
-            options: Default::default(),
-            dispfont: Default::default(),
-            scripts: assets.scripts.clone(),
-        };
-        let pipes = Rc::new(pipes);
-        let mut vm = Vm::new_with_main_module(cyoa_env(pipes.clone()).consume());
-
-        Context {
-            vm: RefCell::new(vm),
-            assets: assets,
-            pipes: pipes 
-        }
+        unimplemented!();
     }
-}
-
-#[derive(Debug)]
-pub struct VmPipes {
-    pub vm_out: RefCell<String>,
-    pub game_state: Cell<i32>,
-    pub options: RefCell<Vec<GameOption>>,
-    pub dispfont: RefCell<String>,
-    pub scripts: Rc<HashMap<String, File>>,
-}
-
-pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
-    let mut builder = std_env();
-    builder.insert_value("display", Value::Cmd(Box::new(Display(pipes.clone()))));
-    builder.insert_value("state", Value::Cmd(Box::new(GameState(pipes.clone()))));
-    builder.insert_value("cyoa", Value::Cmd(Box::new(NewMod(pipes.clone()))));
-    builder.insert_value("option", Value::Cmd(Box::new(AddOption(pipes.clone()))));
-    builder.insert_value("clear-options", Value::Cmd(Box::new(ClearOptions(pipes.clone()))));
-    builder.insert_value("dispfont", Value::Cmd(Box::new(DispFont(pipes.clone()))));
-    builder.insert_value("fetch", Value::Cmd(Box::new(FetchScript(pipes.clone()))));
-    builder
 }
 
 pub struct StoryAssets {
@@ -196,5 +154,4 @@ pub struct ImageHandle {
 #[derive(Debug, Clone)]
 pub struct GameOption {
     pub display: String,
-    pub consequence: Program,
 }

@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate popstcl_core;
-#[macro_use]
-extern crate popstcl_derive;
+extern crate smpl;
 #[macro_use]
 extern crate conrod;
 extern crate find_folder;
@@ -12,7 +9,6 @@ extern crate serde_derive;
 
 mod library;
 mod game;
-mod commands;
 mod title_screen;
 mod game_screen;
 
@@ -53,7 +49,8 @@ fn main() {
             handle.read_to_string(&mut buffer).unwrap();
             buffer
         };
-        context.vm.borrow_mut().eval_str(&main).unwrap();
+
+        // TODO: Eval main
 
         game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
     }
