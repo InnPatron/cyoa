@@ -6,7 +6,10 @@ extern crate image;
 extern crate toml;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate irmatch;
 
+mod script_lib;
 mod library;
 mod game;
 mod title_screen;
