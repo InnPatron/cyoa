@@ -5,6 +5,10 @@ use smpl::Module;
 use smpl::parse_module;
 use smpl::interpreter::*;
 
+pub const STATE_RUN: i32 = 0;
+pub const STATE_IMAGE: i32 = 1;
+pub const STATE_END: i32 = 2;
+
 const RT_MOD: &'static str = "rt";
 
 const RT_CHOICE: &'static str = "choice";
@@ -18,6 +22,8 @@ const RT_GET_FLAG: &'static str = "get_flag";
 const RT_GET_INT: &'static str = "get_int";
 const RT_GET_FLOAT: &'static str = "get_float";
 
+pub const CTXT_STATE: &'static str = "state";
+pub const CTXT_BACKGROUND: &'static str = "background";
 pub const CTXT_DISPLAY: &'static str = "display";
 pub const CTXT_CHOICE: &'static str = "choice_list";
 pub const CTXT_FONT: &'static str = "font";
@@ -36,6 +42,8 @@ mod rt;
 struct Image { }
 
 struct Ctxt { 
+    state: int,
+    background: String,
     display: String,
     font: String,
     choice_list: [Choice; 100],
@@ -76,6 +84,35 @@ builtin fn get_flag(context: Ctxt, name: String) -> bool;
 builtin fn get_int(context: Ctxt, name: String) -> int;
 builtin fn get_float(context: Ctxt, name: String) -> float;
 ";
+
+pub fn new_context() -> Struct {
+    let mut s = Struct::new();
+
+    s.set_field(CTXT_STATE.to_owned(),
+                Value::Int(STATE_RUN));
+
+    s.set_field(CTXT_BACKGROUND.to_owned(), 
+                Value::String("".to_string()));
+
+    s.set_field(CTXT_DISPLAY.to_owned(), 
+                Value::String("".to_string()));
+
+    s.set_field(CTXT_FONT.to_owned(), 
+                Value::String("".to_string()));
+
+    s.set_field(CTXT_CHOICE.to_owned(), 
+                Value::Array(Vec::new()));
+
+    s.set_field(CTXT_FLAG.to_owned(), 
+                Value::Struct(Struct::new()));
+
+    s.set_field(CTXT_INT.to_owned(), 
+                Value::Struct(Struct::new()));
+
+    s.set_field(CTXT_FLOAT.to_owned(), 
+                Value::Struct(Struct::new()));
+    s
+}
 
 pub fn include(modules: &mut Vec<Module>) {
     modules.push(parse_module(RT_LIB).unwrap());
