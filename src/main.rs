@@ -14,6 +14,7 @@ mod library;
 mod game;
 mod title_screen;
 mod game_screen;
+mod assets;
 
 use conrod::backend::glium::glium;
 
