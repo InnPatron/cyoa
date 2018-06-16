@@ -36,12 +36,14 @@ impl ::std::fmt::Display for AssetErr {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct ImageHandle {
     pub id: conimage::Id,
     pub h: u32,
     pub w: u32,
 }
 
+#[derive(Copy, Clone)]
 pub struct FontHandle {
     pub id: conrod::text::font::Id,
 }
