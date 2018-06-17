@@ -35,55 +35,7 @@ pub const CHOICE_HANDLE: &'static str = "handle";
 pub const CHOICE_DISPLAY: &'static str = "display";
 
 
-const RT_LIB: &'static str =
-"
-mod rt;
-
-struct Image { }
-
-struct Ctxt { 
-    state: int,
-    background: String,
-    display: String,
-    font: String,
-    choice_list: [Choice; 100],
-    flag_data: Data,
-    int_data: Data,
-    float_data: Data,
-}
-
-struct Data { }
-
-struct Choice {
-    handle: Fn(Ctxt) -> Ctxt,
-    display: String
-}
-
-fn display(context: Ctxt, str: String) -> Ctxt {
-    let c = context;
-    c.display = str;
-
-    return c;
-}
-
-builtin fn choice(context: Ctxt, handler: Fn(Ctxt) -> Ctxt, display: String) -> Ctxt;
-builtin fn clear_choices(context: Ctxt) -> Ctxt;
-
-fn set_font(context: Ctxt, font_name: String) -> Ctxt {
-    let c = context;
-    c.font = font_name;
-
-    return c;
-}
-
-builtin fn set_flag(context: Ctxt, name: String, b: bool) -> Ctxt;
-builtin fn set_int(context: Ctxt, name: String, i: int) -> Ctxt;
-builtin fn set_float(context: Ctxt, name: String, f: float) -> Ctxt;
-
-builtin fn get_flag(context: Ctxt, name: String) -> bool;
-builtin fn get_int(context: Ctxt, name: String) -> int;
-builtin fn get_float(context: Ctxt, name: String) -> float;
-";
+const RT_LIB: &'static str = include_str!("rt.smpl");
 
 pub fn new_context() -> Struct {
     let mut s = Struct::new();
