@@ -85,7 +85,7 @@ pub fn map_builtins(vm: &mut VM) {
 
 pub struct Choice;
 
-impl BuiltInFn for Choice {
+impl BuiltinFn for Choice {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
         let display = args.pop().unwrap();
@@ -108,7 +108,7 @@ impl BuiltInFn for Choice {
 
 pub struct ClearChoices;
 
-impl BuiltInFn for ClearChoices {
+impl BuiltinFn for ClearChoices {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 
@@ -126,7 +126,7 @@ impl BuiltInFn for ClearChoices {
 
 pub struct SetFlag;
 
-impl BuiltInFn for SetFlag {
+impl BuiltinFn for SetFlag {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 
@@ -146,7 +146,7 @@ impl BuiltInFn for SetFlag {
 
 pub struct SetInt;
 
-impl BuiltInFn for SetInt {
+impl BuiltinFn for SetInt {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 
@@ -166,7 +166,7 @@ impl BuiltInFn for SetInt {
 
 pub struct SetFloat;
 
-impl BuiltInFn for SetFloat {
+impl BuiltinFn for SetFloat {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 
@@ -186,7 +186,7 @@ impl BuiltInFn for SetFloat {
 
 pub struct GetFlag;
 
-impl BuiltInFn for GetFlag {
+impl BuiltinFn for GetFlag {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 
@@ -206,7 +206,7 @@ impl BuiltInFn for GetFlag {
 
 pub struct GetInt;
 
-impl BuiltInFn for GetInt {
+impl BuiltinFn for GetInt {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 
@@ -226,7 +226,7 @@ impl BuiltInFn for GetInt {
 
 pub struct GetFloat;
 
-impl BuiltInFn for GetFloat {
+impl BuiltinFn for GetFloat {
     fn execute(&self, args: Option<Vec<Value>>) -> Value {
         let mut args = args.unwrap();
 

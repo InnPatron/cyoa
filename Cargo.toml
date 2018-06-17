@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Random_Civvy <vomalexander@gmail.com>"]
 
 [dependencies]
-smpl = "0.4.0"
+smpl = { git = "https://github.com/InnPatron/smpl-mirror.git", branch = "master"}
 find_folder = "*"
 image = "0.14.0"
 toml = "0.4.2"
