@@ -1,0 +1,50 @@
+mod main;
+
+use rt;
+use str;
+
+fn start(context: rt::Ctxt) -> rt::Ctxt {
+	let context = context;
+	context = rt::set_font(context, "common");
+	context = rt::set_int(context, "health", 100);
+	context = rt::set_int(context, "counter", 0);
+
+	context = rt::display(context, 
+						  "You sit alone in a bar with a giant mug of beer in front of you.");
+
+	return prompt(context);
+}
+
+fn prompt(context: rt::Ctxt) -> rt::Ctxt {
+	context = rt::clear_choices(context);
+	context = rt::choice(context,
+						 drink,
+						 "Take a sip");
+
+	return context;
+}
+
+fn drink(context: rt::Ctxt) -> rt::Ctxt {
+	let context = context;
+
+	let current_hp = rt::get_int(context, "health");
+	let counter = rt::get_int(context, "counter");
+	
+	counter = counter + 1;
+	current_hp = current_hp - 10;
+
+	context = rt::set_int(context, "health", current_hp);
+	context = rt::set_int(context, "counter", counter);
+
+	if current_hp < 0 {
+		context = rt::display(context, "YOU DIED");
+		context = rt::clear_choices(context);
+	} else {
+		let message = str::to_string("You take a sip. This is drink number ",
+									 counter,
+									 ". What now?");
+		context = rt::display(context, message);
+	}
+
+	return prompt(context);
+}

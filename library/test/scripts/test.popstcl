@@ -1,3 +1,0 @@
-make [cyoa] test_act {
-	mset bla 123;
-};

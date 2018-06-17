@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate popstcl_core;
-#[macro_use]
-extern crate popstcl_derive;
+extern crate smpl;
 #[macro_use]
 extern crate conrod;
 extern crate find_folder;
@@ -9,16 +6,19 @@ extern crate image;
 extern crate toml;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate irmatch;
 
+mod script_lib;
 mod library;
 mod game;
-mod commands;
 mod title_screen;
 mod game_screen;
+mod assets;
 
 use conrod::backend::glium::glium;
 
-use game::Context;
+use game::GameInstance;
 
 use std::fs::File;
 use std::io::Read;
@@ -45,16 +45,20 @@ fn main() {
             None => return,
         };
 
-        let context = Context::new(&handle, &mut ui, &display, &mut image_map);
-        let main = {
-            let mut buffer = String::new();
-            let mut handle = context.assets.scripts.get("main")
-                .expect("Could not find main.popstcl in scripts folder");
-            handle.read_to_string(&mut buffer).unwrap();
-            buffer
-        };
-        context.vm.borrow_mut().eval_str(&main).unwrap();
+        let instance = match GameInstance::new(&handle, &mut ui, &display, &mut image_map) {
+            Ok(instance) => instance,
 
-        game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
+            Err(e) => {
+                eprintln!("{}", e);
+                return;
+            }
+        };
+
+        game_screen::handle_game_screen(&mut events_loop, 
+                                        &mut ui, 
+                                        display.clone(), 
+                                        &mut renderer, 
+                                        &image_map, 
+                                        instance);
     }
 }
