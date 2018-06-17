@@ -18,7 +18,7 @@ mod assets;
 
 use conrod::backend::glium::glium;
 
-use game::Context;
+use game::GameInstance;
 
 use std::fs::File;
 use std::io::Read;
@@ -45,17 +45,20 @@ fn main() {
             None => return,
         };
 
-        let context = Context::new(&handle, &mut ui, &display, &mut image_map);
-        let main = {
-            let mut buffer = String::new();
-            let mut handle = context.assets.scripts.get("main")
-                .expect("Could not find main.popstcl in scripts folder");
-            handle.read_to_string(&mut buffer).unwrap();
-            buffer
+        let instance = match GameInstance::new(&handle, &mut ui, &display, &mut image_map) {
+            Ok(instance) => instance,
+
+            Err(e) => {
+                eprintln!("{}", e);
+                return;
+            }
         };
 
-        // TODO: Eval main
-
-        game_screen::handle_game_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map, context);
+        game_screen::handle_game_screen(&mut events_loop, 
+                                        &mut ui, 
+                                        display.clone(), 
+                                        &mut renderer, 
+                                        &image_map, 
+                                        instance);
     }
 }

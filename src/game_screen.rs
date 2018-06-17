@@ -6,6 +6,7 @@ use conrod::color;
 use conrod::event::Input;
 use conrod::input::{Button, Key};
 
+use script_lib;
 use game::*;
 
 widget_ids! {
@@ -21,7 +22,7 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
                        display: glium::Display,
                        renderer: &mut conrod::backend::glium::Renderer,
                        image_map: &conrod::image::Map<glium::texture::Texture2d>,
-                       context: Context
+                       mut instance: GameInstance,
                        ) {
     let ids = GameIds::new(ui.widget_id_generator());
     let idle_ids = IdleScreenIds::new(ui.widget_id_generator());
@@ -52,20 +53,29 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
         // Handle the input with the `Ui`.
         ui.handle_event(input);
         {
-            /*
-            let game_state: i32 = context.pipes.game_state.get();
-            if game_state == 0 {
-                draw_game_screen(ui.set_widgets(), &ids, &context);
-            } else if game_state == 1 {
-                if draw_image_screen(ui.set_widgets(), &idle_ids, &context) {
-                    context.vm.borrow_mut().eval_str("state 0;").unwrap();
+            let game_state = instance.context().state();
+
+            if game_state == script_lib::STATE_RUN {
+
+                draw_game_screen(ui.set_widgets(), &ids, &mut instance);
+
+            } else if game_state == script_lib::STATE_IMAGE {
+
+                if draw_image_screen(ui.set_widgets(), &idle_ids, &instance) {
+                    let context = instance.context_mut();
+                    context.set_state(script_lib::STATE_RUN);
+                    //context.vm.borrow_mut().eval_str("state 0;").unwrap();
                 }
-            } else if game_state == 2 {
-                context.vm.borrow_mut().eval_str("state 0;").unwrap();
+
+            } else if game_state == script_lib::STATE_END {
+                let context = instance.context_mut();
+                context.set_state(script_lib::STATE_RUN);
+                return glium::glutin::ControlFlow::Break;
+            } else {
+
+                eprintln!("Invalid state {}", game_state);
                 return glium::glutin::ControlFlow::Break;
             }
-            */
-            // TODO: Handle game state
         }
         if let Some(primitives) = ui.draw_if_changed() {
             renderer.fill(&display, primitives, &image_map);
@@ -80,20 +90,18 @@ pub fn handle_game_screen(events_loop: &mut glium::glutin::EventsLoop,
     });
 }
 
-fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &Context) -> bool {
+fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, instance: &GameInstance) -> bool {
     widget::Canvas::new()
         .color(color::BLACK)
         .set(ids.canvas, ui);
 
-    // TODO: get background image
-    /* 
-    let image_name = context.vm.borrow().get("background")
-        //.expect("'background' variable expected to display background");
-    let image_name = image_name.borrow()
-        .try_into_string()
-        .expect("'background' variable should only be a String");
-    let image = context.assets.images.get(&**image_name)
-        .expect(&format!("{} is an invalid image (PNG's only, name without file extension)", &**image_name));
+    let context = instance.context();
+
+    // TODO: Handle empty background string?
+    let image_name = context.background();
+    let image = instance.get_image(&image_name)
+        .expect(&format!("Could not find image {}", image_name));
+
     if widget::Button::image(image.id)
         .border(0.0)
         .wh_of(ids.canvas)
@@ -105,11 +113,9 @@ fn draw_image_screen(ref mut ui: conrod::UiCell, ids: &IdleScreenIds, context: &
     } else {
             false
     }
-    */
-    unimplemented!()
 }
 
-fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context) {
+fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, instance: &mut GameInstance) {
 
     let text_row = widget::Canvas::new().color(color::BLACK)
         .scroll_kids_vertically();
@@ -120,31 +126,33 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
     ])
         .set(ids.canvas, ui);
 
-    /*
-    let font = context.assets.fonts.get(
-        &*context.pipes.dispfont.borrow()
-    ).expect("Unknown font").clone();
+    {
+        let context = instance.context();
+        let font = instance
+            .get_font(&context.font())
+            .expect("Unknown font").clone();
 
-    let font_size = 24;
+        let font_size = 24;
 
-    let text: String = context.pipes.vm_out.borrow().to_string();
+        let text: String = context.display();
 
-    widget::Text::new(&*text)
-        .font_id(font)
-        .top_left_with_margin_on(ids.text_row, 5.)
-        .padded_w_of(ids.text_row, 10.)
-        .left_justify()
-        .color(color::WHITE)
-        .font_size(font_size)
-        .set(ids.text, ui);
-    widget::Scrollbar::y_axis(ids.text_row)
-        .auto_hide(false)
-        .thickness(14.)
-        .color(color::WHITE)
-        .set(ids.text_scroll, ui);
+        widget::Text::new(&*text)
+            .font_id(font.id)
+            .top_left_with_margin_on(ids.text_row, 5.)
+            .padded_w_of(ids.text_row, 10.)
+            .left_justify()
+            .color(color::WHITE)
+            .font_size(font_size)
+            .set(ids.text, ui);
+        widget::Scrollbar::y_axis(ids.text_row)
+            .auto_hide(false)
+            .thickness(14.)
+            .color(color::WHITE)
+            .set(ids.text_scroll, ui);
+    }
 
     {
-        let options = context.pipes.options.borrow().clone();
+        let options = instance.context().choices();
         let len = options.len();
         let item_h = 50.0;
         let font_size = item_h as conrod::FontSize / 2;
@@ -160,7 +168,7 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
             use conrod::widget::list_select::Event;
             match event {
                 Event::Item(item) => {
-                    let &GameOption {ref display, ..}= options.get(item.i).unwrap();
+                    let display = options.get(item.i).unwrap().display();
 
                     let (color, label_color) = (color::GREY, color::BLACK);
                     let button = widget::Button::new()
@@ -174,8 +182,8 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
                 }
 
                 Event::Selection(index) => {
-                    let GameOption {consequence, ..} = options.get(index).unwrap().clone();
-                    context.vm.borrow_mut().eval_program(&consequence).unwrap();
+                    let choice = options.get(index).unwrap();
+                    instance.execute_choice(choice);
                 }
                 _ => (),
             }
@@ -183,6 +191,4 @@ fn draw_game_screen(ref mut ui: conrod::UiCell, ids: &GameIds, context: &Context
 
         if let Some(s) = scrollbar { s.set(ui); }
     }
-    */
-    unimplemented!()
 }
