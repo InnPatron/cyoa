@@ -16,7 +16,7 @@ struct Ctxt {
 struct Data { }
 
 struct Choice {
-    handle: Fn(Ctxt) -> Ctxt,
+    handle: fn(Ctxt) -> Ctxt,
     display: String
 }
 
@@ -27,7 +27,7 @@ fn display(context: Ctxt, str: String) -> Ctxt {
     return c;
 }
 
-builtin fn choice(context: Ctxt, handler: Fn(Ctxt) -> Ctxt, display: String) -> Ctxt;
+builtin fn choice(context: Ctxt, handler: fn(Ctxt) -> Ctxt, display: String) -> Ctxt;
 builtin fn clear_choices(context: Ctxt) -> Ctxt;
 
 fn set_font(context: Ctxt, font_name: String) -> Ctxt {
