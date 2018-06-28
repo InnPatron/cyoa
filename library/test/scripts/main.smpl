@@ -3,15 +3,13 @@ mod main;
 use rt;
 
 fn start(c: rt::Ctxt) -> rt::Ctxt {
-    c.font = "common";
-    c = rt::display(c, "Hello world");
-    c = rt::clear_choices(c);
 
-    c = rt::choice(c, cheap_display, "Change display");
-    c = rt::choice(c, nop, "NOP");
-    c = rt::choice(c, end, "Finish it");
-
-    return c;
+    return rt::set_font(c, "common")
+        |> rt::display("Hello world")
+        |> rt::clear_choices()
+        |> rt::choice(cheap_display, "Change display")
+        |> rt::choice(nop, "NOP")
+        |> rt::choice(end, "Finish it");
 }
 
 fn cheap_display(c: rt::Ctxt) -> rt::Ctxt {
@@ -23,11 +21,11 @@ fn nop(c: rt::Ctxt) -> rt::Ctxt {
 }
 
 fn end(c: rt::Ctxt) -> rt::Ctxt {
-    c = rt::display(c, "END");
-    c = rt::clear_choices(c);
-    
-    c.background = "test";
-    c.state = 1;
+
+    return rt::display(c, "END")
+        |> rt::clear_choices()
+        |> rt::set_background("test")
+        |> rt::set_state(1);
 
     return c;
 }
