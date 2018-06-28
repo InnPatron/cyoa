@@ -31,10 +31,20 @@ builtin fn choice(context: Ctxt, handler: fn(Ctxt) -> Ctxt, display: String) -> 
 builtin fn clear_choices(context: Ctxt) -> Ctxt;
 
 fn set_font(context: Ctxt, font_name: String) -> Ctxt {
-    let c = context;
-    c.font = font_name;
+    context.font = font_name;
 
-    return c;
+    return context;
+}
+
+fn set_background(context: Ctxt, background: String) -> Ctxt {
+    context.background = background;
+    return context;
+}
+
+fn set_state(context: Ctxt, state: int) -> Ctxt {
+    context.state = state;
+
+    return context;
 }
 
 builtin fn set_flag(context: Ctxt, name: String, b: bool) -> Ctxt;
