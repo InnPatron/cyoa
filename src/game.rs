@@ -11,190 +11,171 @@ use conrod::backend::glium::glium;
 use conrod::Ui;
 use conrod;
 use conrod::image as conimage;
-use super::library::StoryHandle;
 
-use popstcl_core::*;
-use popstcl_core::internal::Vm;
-use commands::*;
+use smpl::interpreter::{VM, Struct as SmplStruct, Value, FnHandle};
 
-pub struct Context {
-    pub vm: RefCell<Vm>,
-    pub assets: StoryAssets,
-    pub pipes: Rc<VmPipes>
+use library::StoryHandle;
+use assets::*;
+use script_lib;
+
+pub const MAIN_MODULE: &'static str = "main";
+pub const INIT_FN: &'static str = "start";
+
+pub enum GameErr {
+    AssetErr(AssetErr),
+    ScriptErr(String),
 }
 
-impl Context {
+impl ::std::fmt::Display for GameErr {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        match *self {
+            GameErr::AssetErr(ref e) => write!(f, "{}", e),
+            GameErr::ScriptErr(ref s) => write!(f, "Script error:\n{}", s),
+        }
+    }
+}
+
+impl From<AssetErr> for GameErr {
+    fn from(e: AssetErr) -> GameErr {
+        GameErr::AssetErr(e)
+    }
+}
+
+pub struct GameInstance {
+    images: HashMap<String, ImageHandle>,
+    fonts: HashMap<String, FontHandle>,
+    vm: VM,
+    context: Context,
+}
+
+impl GameInstance {
     pub fn new(handle: &StoryHandle, 
                ui: &mut Ui, 
                display: &glium::Display, 
-               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Context {
-        use commands::*;
+               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Result<GameInstance, GameErr> {
 
-        let assets = StoryAssets::load(handle, ui, display, image_map);
-        let pipes = VmPipes {
-            vm_out: Default::default(),
-            game_state: Default::default(),
-            options: Default::default(),
-            dispfont: Default::default(),
-            scripts: assets.scripts.clone(),
-        };
-        let pipes = Rc::new(pipes);
-        let mut vm = Vm::new_with_main_module(cyoa_env(pipes.clone()).consume());
+        let assets = StoryAssets::load(handle, ui, display, image_map)?;
 
-        Context {
-            vm: RefCell::new(vm),
-            assets: assets,
-            pipes: pipes 
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct VmPipes {
-    pub vm_out: RefCell<String>,
-    pub game_state: Cell<i32>,
-    pub options: RefCell<Vec<GameOption>>,
-    pub dispfont: RefCell<String>,
-    pub scripts: Rc<HashMap<String, File>>,
-}
-
-pub fn cyoa_env(pipes: Rc<VmPipes>) -> EnvBuilder {
-    let mut builder = std_env();
-    builder.insert_value("display", Value::Cmd(Box::new(Display(pipes.clone()))));
-    builder.insert_value("state", Value::Cmd(Box::new(GameState(pipes.clone()))));
-    builder.insert_value("cyoa", Value::Cmd(Box::new(NewMod(pipes.clone()))));
-    builder.insert_value("option", Value::Cmd(Box::new(AddOption(pipes.clone()))));
-    builder.insert_value("clear-options", Value::Cmd(Box::new(ClearOptions(pipes.clone()))));
-    builder.insert_value("dispfont", Value::Cmd(Box::new(DispFont(pipes.clone()))));
-    builder.insert_value("fetch", Value::Cmd(Box::new(FetchScript(pipes.clone()))));
-    builder
-}
-
-pub struct StoryAssets {
-    pub images: HashMap<String, ImageHandle>,
-    pub fonts: HashMap<String, conrod::text::font::Id>,
-    pub scripts: Rc<HashMap<String, File>>,
-}
-
-impl StoryAssets {
-    pub fn load(handle: &StoryHandle, 
-                ui: &mut Ui, 
-                display: &glium::Display,
-                image_map: &mut conimage::Map<glium::texture::Texture2d>) -> StoryAssets {
-        let assets = find_folder::Search::Kids(1)
-            .of(handle.root.clone())
-            .for_folder("assets")
-            .expect("Unable to read assets folder");
-        let images = find_folder::Search::Kids(1)
-            .of(assets.clone())
-            .for_folder("images")
-            .expect("Unable to read images folder");
-        let fonts = find_folder::Search::Kids(1)
-            .of(assets.clone())
-            .for_folder("fonts")
-            .expect("Unable to read fonts folder");
-        let scripts = find_folder::Search::Kids(1)
-            .of(handle.root.clone())
-            .for_folder("scripts")
-            .expect("Unable to read src folder");
+        let mut scripts = assets.scripts;
+        script_lib::include(&mut scripts);
         
-        StoryAssets {
-            images: load_images(images, display, image_map),
-            fonts: load_fonts(fonts, ui),
-            scripts: Rc::new(load_scripts(scripts)),
-        }
+        let mut vm = VM::new(scripts)
+            .map_err(|e| GameErr::ScriptErr(format!("Failed to start VM.\n{:?}", e)))?;
+
+        script_lib::map_builtins(&mut vm);
+
+        let init = vm.query_module(MAIN_MODULE, INIT_FN)
+            .map_err(|e| GameErr::ScriptErr(format!("Failed to query {} for {}\n {:?}",
+                                                    MAIN_MODULE,
+                                                    INIT_FN,
+                                                    e)))?
+            .ok_or(GameErr::ScriptErr(format!("Failed to find {} in module {}",
+                                              INIT_FN,
+                                              MAIN_MODULE)))?;
+
+        let context = script_lib::new_context();
+
+        // Assume fn init() is Fn(Context) -> Context
+        let result = vm.eval_fn_args(init, vec![Value::Struct(context)]);
+        let result = irmatch!(result; Value::Struct(s) => s);
+
+        let context = Context(result);
+        
+        Ok(GameInstance {
+            images: assets.images,
+            fonts: assets.fonts,
+            vm: vm,
+            context: context,
+        })
+    }
+
+    pub fn get_image(&self, name: &str) -> Option<ImageHandle> {
+        self.images.get(name).map(|h| h.clone())
+    }
+
+    pub fn get_font(&self, name: &str) -> Option<FontHandle> {
+        self.fonts.get(name).map(|h| h.clone()) 
+    }
+
+    pub fn context(&self) -> &Context {
+        &self.context
+    }
+
+    pub fn context_mut(&mut self) -> &mut Context {
+        &mut self.context
+    }
+
+    pub fn execute_choice(&mut self, choice: &Choice) {
+        // Assume choice handlers are Fn(Context) -> Context
+        let mut temp = SmplStruct::new();
+        ::std::mem::swap(&mut temp, &mut self.context.0);
+        let result = self.vm.eval_fn_args(choice.handle(), vec![Value::Struct(temp)]);
+
+        let result = irmatch!(result; Value::Struct(s) => s);
+        self.context = Context(result);
     }
 }
 
-fn load_images(image_folder: PathBuf, 
-               display: &glium::Display,
-               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> HashMap<String, ImageHandle> {
-    let mut map = HashMap::new();
-    
-    for entry in fs::read_dir(image_folder).unwrap() {
-        let entry = entry.unwrap();
-        if entry.file_type().unwrap().is_file() == false {
-            continue;
-        } else {
-            let path = entry.path();
-            let name = path.file_stem()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string();
-            let extension = path.extension().unwrap();
-            if extension == "png" {
-                let rgba_image = image::open(path.clone()).unwrap().to_rgba();
-                let dimensions = rgba_image.dimensions();
-                let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&rgba_image.into_raw(), dimensions);
-                let texture = glium::texture::Texture2d::new(display, raw_image).unwrap();
-                let w = texture.get_width();
-                let h = texture.get_height().unwrap();
-                let id = image_map.insert(texture);
-                map.insert(name, ImageHandle { id: id, h:h, w:w });
-            }
-        }
+pub struct Context(SmplStruct);
+
+impl Context {
+
+    pub fn state(&self) -> i32 {
+        irmatch!(self.0.get_field(script_lib::CTXT_STATE)
+                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_STATE));
+                 Value::Int(i) => i)
     }
 
-    map
-}
-
-fn load_fonts(font_folder: PathBuf, ui: &mut Ui) -> HashMap<String, conrod::text::font::Id> {
-    let mut map = HashMap::new();
-    
-    for entry in fs::read_dir(font_folder).unwrap() {
-        let entry = entry.unwrap();
-        if entry.file_type().unwrap().is_file() == false {
-            continue;
-        } else {
-            let path = entry.path();
-            let name = path.file_stem()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string();
-            let extension = path.extension().unwrap();
-            if extension == "ttf" {
-                let id = ui.fonts.insert_from_file(path.clone()).unwrap();
-                map.insert(name, id);
-            }
-        }
+    pub fn background(&self) -> String {
+        irmatch!(self.0.get_field(script_lib::CTXT_BACKGROUND)
+                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_BACKGROUND));
+                 Value::String(s) => s)
     }
 
-    map
-}
-
-fn load_scripts(scripts_folder: PathBuf) -> HashMap<String, File> {
-    let mut map = HashMap::new();
-    for entry in fs::read_dir(scripts_folder).unwrap() {
-        let entry = entry.unwrap();
-        if entry.file_type().unwrap().is_file() == false {
-            continue;
-        } else {
-            let path = entry.path();
-            let name = path.file_stem()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string();
-            let extension = path.extension().unwrap();
-            if extension == "popstcl" {
-                let file = File::open(path.clone()).unwrap();
-                map.insert(name, file);
-            }
-        }
+    pub fn display(&self) -> String {
+        irmatch!(self.0.get_field(script_lib::CTXT_DISPLAY)
+                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_DISPLAY));
+                 Value::String(s) => s)
     }
-    map
-}
 
-pub struct ImageHandle {
-    pub id: conimage::Id,
-    pub h: u32,
-    pub w: u32,
+    pub fn font(&self) -> String {
+        irmatch!(self.0.get_field(script_lib::CTXT_FONT)
+                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_FONT));
+                 Value::String(s) => s)
+    }
+
+    pub fn choices(&self) -> Vec<Choice> {
+        let choices = irmatch!(self.0.get_field(script_lib::CTXT_CHOICE)
+                               .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_CHOICE));
+                               Value::Array(a) => a);
+
+        choices.into_iter()
+            .map(|smpl_struct| Choice(smpl_struct.clone()))
+            .collect()
+    }
+
+    pub fn set_state(&mut self, state: i32) {
+        self.0.set_field(script_lib::CTXT_STATE.to_owned(), Value::Int(state));
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct GameOption {
-    pub display: String,
-    pub consequence: Program,
+pub struct Choice(Rc<RefCell<Value>>);
+
+impl Choice {
+    pub fn display(&self) -> String {
+        let choice = self.0.borrow();
+        let choice = irmatch!(*choice; Value::Struct(ref s) => s);
+        irmatch!(choice.get_field(script_lib::CHOICE_DISPLAY)
+                 .expect(&format!("Choice missing '{}' field", script_lib::CHOICE_DISPLAY));
+                 Value::String(s) => s)
+    }
+
+    pub fn handle(&self) -> FnHandle {
+        let choice = self.0.borrow();
+        let choice = irmatch!(*choice; Value::Struct(ref s) => s);
+        irmatch!(choice.get_field(script_lib::CHOICE_HANDLE)
+                 .expect(&format!("Choice missing '{}' field", script_lib::CHOICE_HANDLE));
+                 Value::Function(f) => f)
+    }
 }

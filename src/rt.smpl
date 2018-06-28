@@ -1,0 +1,56 @@
+mod rt;
+
+struct Image { }
+
+struct Ctxt { 
+    state: int,
+    background: String,
+    display: String,
+    font: String,
+    choice_list: [Choice; 100],
+    flag_data: Data,
+    int_data: Data,
+    float_data: Data,
+}
+
+struct Data { }
+
+struct Choice {
+    handle: fn(Ctxt) -> Ctxt,
+    display: String
+}
+
+fn display(context: Ctxt, str: String) -> Ctxt {
+    let c = context;
+    c.display = str;
+
+    return c;
+}
+
+builtin fn choice(context: Ctxt, handler: fn(Ctxt) -> Ctxt, display: String) -> Ctxt;
+builtin fn clear_choices(context: Ctxt) -> Ctxt;
+
+fn set_font(context: Ctxt, font_name: String) -> Ctxt {
+    context.font = font_name;
+
+    return context;
+}
+
+fn set_background(context: Ctxt, background: String) -> Ctxt {
+    context.background = background;
+    return context;
+}
+
+fn set_state(context: Ctxt, state: int) -> Ctxt {
+    context.state = state;
+
+    return context;
+}
+
+builtin fn set_flag(context: Ctxt, name: String, b: bool) -> Ctxt;
+builtin fn set_int(context: Ctxt, name: String, i: int) -> Ctxt;
+builtin fn set_float(context: Ctxt, name: String, f: float) -> Ctxt;
+
+builtin fn get_flag(context: Ctxt, name: String) -> bool;
+builtin fn get_int(context: Ctxt, name: String) -> int;
+builtin fn get_float(context: Ctxt, name: String) -> float;
