@@ -1097,7 +1097,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "smpl"
 version = "0.6.0"
-source = "git+https://github.com/InnPatron/smpl-mirror.git#64dd148d6e85c84ad96c151a66474004c29be742"
+source = "git+https://github.com/InnPatron/smpl-mirror.git#09d68ef3901aaaf0448f4ad25bf99cd6501b6673"
 dependencies = [
  "irmatch 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
