@@ -12,6 +12,7 @@ mod script_lib;
 mod library;
 mod game;
 mod assets;
+mod display;
 
 use game::GameInstance;
 
