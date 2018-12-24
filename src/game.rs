@@ -5,7 +5,8 @@ use std::rc::Rc;
 use std::cell::{Cell, RefCell};
 use std::fs::File;
 
-use smpl::interpreter::{VM, Struct as SmplStruct, Value, FnHandle};
+use failure::Error;
+use smpl::interpreter::{AVM, Struct as SmplStruct, Value, FnHandle, Std};
 
 use library::StoryHandle;
 use assets::*;
@@ -14,18 +15,12 @@ use script_lib;
 pub const MAIN_MODULE: &'static str = "main";
 pub const INIT_FN: &'static str = "start";
 
+#[derive(Debug, Fail)]
 pub enum GameErr {
+    #[fail(display = "{}", _0)]
     AssetErr(AssetErr),
+    #[fail(display = "Script Error: {}", _0)]
     ScriptErr(String),
-}
-
-impl ::std::fmt::Display for GameErr {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        match *self {
-            GameErr::AssetErr(ref e) => write!(f, "{}", e),
-            GameErr::ScriptErr(ref s) => write!(f, "Script error:\n{}", s),
-        }
-    }
 }
 
 impl From<AssetErr> for GameErr {
@@ -35,22 +30,18 @@ impl From<AssetErr> for GameErr {
 }
 
 pub struct GameInstance {
-    vm: VM,
+    vm: AVM,
     context: Context,
 }
 
 impl GameInstance {
-    pub fn new(handle: &StoryHandle) -> Result<GameInstance, GameErr> {
+    pub fn new(handle: &StoryHandle) -> Result<GameInstance, Error> {
 
         let assets = StoryAssets::load(handle)?;
 
-        let mut scripts = assets.scripts;
-        script_lib::include(&mut scripts);
-        
-        let mut vm = VM::new(scripts)
+        let scripts = vec![script_lib::vm_module()];
+        let mut vm = AVM::new(Std::std(), scripts)
             .map_err(|e| GameErr::ScriptErr(format!("Failed to start VM.\n{:?}", e)))?;
-
-        script_lib::map_builtins(&mut vm);
 
         let init = vm.query_module(MAIN_MODULE, INIT_FN)
             .map_err(|e| GameErr::ScriptErr(format!("Failed to query {} for {}\n {:?}",
@@ -64,7 +55,7 @@ impl GameInstance {
         let context = script_lib::new_context();
 
         // Assume fn init() is Fn(Context) -> Context
-        let result = vm.eval_fn_args(init, vec![Value::Struct(context)]);
+        let result = vm.eval_fn_args_sync(init, Some(vec![Value::Struct(context)]))?;
         let result = irmatch!(result; Value::Struct(s) => s);
 
         let context = Context(result);
@@ -83,14 +74,18 @@ impl GameInstance {
         &mut self.context
     }
 
-    pub fn execute_choice(&mut self, choice: &Choice) {
+    pub fn execute_choice(&mut self, choice: &Choice) -> Result<(), Error> {
         // Assume choice handlers are Fn(Context) -> Context
         let mut temp = SmplStruct::new();
         ::std::mem::swap(&mut temp, &mut self.context.0);
-        let result = self.vm.eval_fn_args(choice.handle(), vec![Value::Struct(temp)]);
+        let result = self
+            .vm.eval_fn_args_sync(choice.handle(), 
+                                  Some(vec![Value::Struct(temp)]))?;
 
         let result = irmatch!(result; Value::Struct(s) => s);
         self.context = Context(result);
+
+        Ok(())
     }
 }
 
