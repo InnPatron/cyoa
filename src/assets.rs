@@ -4,7 +4,7 @@ use std::io::Read;
 use std::fs;
 use std::fs::File;
 
-use smpl::{Module, parse_module};
+use smpl::{UnparsedModule, ParsedModule, parse_module};
 
 use super::library::StoryHandle;
 
@@ -23,7 +23,7 @@ impl ::std::fmt::Display for AssetErr {
 }
 
 pub struct StoryAssets {
-    pub scripts: Vec<Module>, 
+    pub scripts: Vec<ParsedModule>, 
 }
 
 impl StoryAssets {
@@ -43,7 +43,7 @@ impl StoryAssets {
     }
 }
 
-fn load_scripts(scripts_folder: PathBuf) -> Result<Vec<Module>, AssetErr> {
+fn load_scripts(scripts_folder: PathBuf) -> Result<Vec<ParsedModule>, AssetErr> {
     let mut modules = Vec::new();
 
     for entry in fs::read_dir(scripts_folder).unwrap() {
@@ -67,8 +67,9 @@ fn load_scripts(scripts_folder: PathBuf) -> Result<Vec<Module>, AssetErr> {
                     file.read_to_string(&mut contents)
                         .map_err(|e| AssetErr::ScriptErr(format!("Error reading script {}.\n{}", path.display(), e)))?;
                     
+                    let contents = UnparsedModule::file(path.clone(), &contents);
                     modules.push(
-                        parse_module(&contents)
+                        parse_module(contents)
                         .map_err(|e| AssetErr::ScriptErr(
                                 format!("Failed to parse script {}.\n{:?}", 
                                         path.display(), 
