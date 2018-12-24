@@ -8,6 +8,7 @@ extern crate irmatch;
 #[macro_use]
 extern crate failure;
 
+mod input;
 mod script_lib;
 mod library;
 mod game;
