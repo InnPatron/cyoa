@@ -4,14 +4,10 @@ version = "0.1.0"
 authors = ["Random_Civvy <vomalexander@gmail.com>"]
 
 [dependencies]
-smpl = { git = "https://github.com/InnPatron/smpl-mirror.git", branch = "master"}
+smpl = "0.12.0"
 find_folder = "*"
 image = "0.14.0"
 toml = "0.4.2"
 serde = "1.0.10"
 serde_derive = "1.0.10"
 irmatch = "0.2.0"
-
-[dependencies.conrod]
-version = "0.54.0"
-features = ["winit", "glium"]

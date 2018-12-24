@@ -5,13 +5,6 @@ use std::rc::Rc;
 use std::cell::{Cell, RefCell};
 use std::fs::File;
 
-use image;
-use find_folder;
-use conrod::backend::glium::glium;
-use conrod::Ui;
-use conrod;
-use conrod::image as conimage;
-
 use smpl::interpreter::{VM, Struct as SmplStruct, Value, FnHandle};
 
 use library::StoryHandle;
@@ -42,19 +35,14 @@ impl From<AssetErr> for GameErr {
 }
 
 pub struct GameInstance {
-    images: HashMap<String, ImageHandle>,
-    fonts: HashMap<String, FontHandle>,
     vm: VM,
     context: Context,
 }
 
 impl GameInstance {
-    pub fn new(handle: &StoryHandle, 
-               ui: &mut Ui, 
-               display: &glium::Display, 
-               image_map: &mut conimage::Map<glium::texture::Texture2d>) -> Result<GameInstance, GameErr> {
+    pub fn new(handle: &StoryHandle) -> Result<GameInstance, GameErr> {
 
-        let assets = StoryAssets::load(handle, ui, display, image_map)?;
+        let assets = StoryAssets::load(handle)?;
 
         let mut scripts = assets.scripts;
         script_lib::include(&mut scripts);
@@ -82,19 +70,9 @@ impl GameInstance {
         let context = Context(result);
         
         Ok(GameInstance {
-            images: assets.images,
-            fonts: assets.fonts,
             vm: vm,
             context: context,
         })
-    }
-
-    pub fn get_image(&self, name: &str) -> Option<ImageHandle> {
-        self.images.get(name).map(|h| h.clone())
-    }
-
-    pub fn get_font(&self, name: &str) -> Option<FontHandle> {
-        self.fonts.get(name).map(|h| h.clone()) 
     }
 
     pub fn context(&self) -> &Context {
