@@ -15,6 +15,8 @@ mod game;
 mod assets;
 mod display;
 
+mod title_screen;
+
 use game::GameInstance;
 
 fn main() {
