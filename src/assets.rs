@@ -10,16 +10,10 @@ use super::library::StoryHandle;
 
 const SCRIPT_FILE_EXTENSION: &'static str = "smpl";
 
+#[derive(Debug, Fail)]
 pub enum AssetErr {
+    #[fail(display = "Script Asset Error: {}", _0)]
     ScriptErr(String),
-}
-
-impl ::std::fmt::Display for AssetErr {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        match *self {
-            AssetErr::ScriptErr(ref s) => write!(f, "Script error:\n{}", s),
-        }
-    }
 }
 
 pub struct StoryAssets {
