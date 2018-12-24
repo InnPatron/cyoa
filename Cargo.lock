@@ -119,6 +119,7 @@ dependencies = [
 name = "cyoa"
 version = "0.1.0"
 dependencies = [
+ "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "find_folder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "irmatch 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",

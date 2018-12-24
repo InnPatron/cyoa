@@ -5,6 +5,8 @@ extern crate toml;
 extern crate serde_derive;
 #[macro_use]
 extern crate irmatch;
+#[macro_use]
+extern crate failure;
 
 mod script_lib;
 mod library;
