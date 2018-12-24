@@ -1,8 +1,9 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use smpl::Module;
-use smpl::parse_module;
+use failure::Error;
+
+use smpl::{parse_module, UnparsedModule};
 use smpl::interpreter::*;
 
 pub const STATE_RUN: i32 = 0;
@@ -66,180 +67,149 @@ pub fn new_context() -> Struct {
     s
 }
 
-pub fn include(modules: &mut Vec<Module>) {
-    modules.push(parse_module(RT_LIB).unwrap());
+pub fn vm_module() -> VmModule {
+    let parsed = parse_module(UnparsedModule::anonymous(RT_LIB)).unwrap();
+    let vm_module = VmModule::new(parsed)
+        .add_builtin(RT_CHOICE, choice)
+        .add_builtin(RT_CHOICE, clear_choices)
+
+        .add_builtin(RT_CHOICE, set_flag)
+        .add_builtin(RT_CHOICE, set_int)
+        .add_builtin(RT_CHOICE, set_float)
+
+        .add_builtin(RT_CHOICE, get_flag)
+        .add_builtin(RT_CHOICE, get_int)
+        .add_builtin(RT_CHOICE, get_float)
+    ;
+
+    vm_module
 }
 
-pub fn map_builtins(vm: &mut VM) {
-    vm.insert_builtin(RT_MOD, RT_CHOICE, Box::new(Choice));
-    vm.insert_builtin(RT_MOD, RT_CLEAR_CHOICES, Box::new(ClearChoices));
+fn choice(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
+    let display = args.pop().unwrap();
+    let handler = args.pop().unwrap();
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-    vm.insert_builtin(RT_MOD, RT_SET_FLAG, Box::new(SetFlag));
-    vm.insert_builtin(RT_MOD, RT_SET_INT, Box::new(SetInt));
-    vm.insert_builtin(RT_MOD, RT_SET_FLOAT, Box::new(SetFloat));
+    let list = context.ref_field(CTXT_CHOICE).unwrap();
+    let mut list = list.borrow_mut();
+    let mut list = irmatch!(*list; Value::Array(ref mut vec) => vec);
 
-    vm.insert_builtin(RT_MOD, RT_GET_FLAG, Box::new(GetFlag));
-    vm.insert_builtin(RT_MOD, RT_GET_INT, Box::new(GetInt));
-    vm.insert_builtin(RT_MOD, RT_GET_FLOAT, Box::new(GetFloat));
+    let mut choice = Struct::new();
+    choice.set_field(CHOICE_HANDLE.to_owned(), handler);
+    choice.set_field(CHOICE_DISPLAY.to_owned(), display);
+
+    list.push(Rc::new(RefCell::new(Value::Struct(choice))));
+
+    Ok(Value::Struct(context))
 }
 
-pub struct Choice;
+fn clear_choices(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for Choice {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
-        let display = args.pop().unwrap();
-        let handler = args.pop().unwrap();
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let list = context.ref_field(CTXT_CHOICE).unwrap();
-        let mut list = list.borrow_mut();
-        let mut list = irmatch!(*list; Value::Array(ref mut vec) => vec);
+    let list = context.ref_field(CTXT_CHOICE).unwrap();
+    let mut list = list.borrow_mut();
+    let mut list = irmatch!(*list; Value::Array(ref mut vec) => vec);
 
-        let mut choice = Struct::new();
-        choice.set_field(CHOICE_HANDLE.to_owned(), handler);
-        choice.set_field(CHOICE_DISPLAY.to_owned(), display);
+    list.clear();
 
-        list.push(Rc::new(RefCell::new(Value::Struct(choice))));
-
-        Value::Struct(context)
-    }
+    Ok(Value::Struct(context))
 }
 
-pub struct ClearChoices;
+fn set_flag(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for ClearChoices {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
+    let to_set = args.pop().unwrap();
+    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let data = context.ref_field(CTXT_FLAG).unwrap();
+    let mut data = data.borrow_mut();
+    let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
 
-        let list = context.ref_field(CTXT_CHOICE).unwrap();
-        let mut list = list.borrow_mut();
-        let mut list = irmatch!(*list; Value::Array(ref mut vec) => vec);
+    data.set_field(name, to_set);
 
-        list.clear();
-
-        Value::Struct(context)
-    }
+    Ok(Value::Struct(context))
 }
 
-pub struct SetFlag;
+fn set_int(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for SetFlag {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
+    let to_set = args.pop().unwrap();
+    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let to_set = args.pop().unwrap();
-        let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let data = context.ref_field(CTXT_INT).unwrap();
+    let mut data = data.borrow_mut();
+    let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
 
-        let data = context.ref_field(CTXT_FLAG).unwrap();
-        let mut data = data.borrow_mut();
-        let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    data.set_field(name, to_set);
 
-        data.set_field(name, to_set);
-
-        Value::Struct(context)
-    }
+    Ok(Value::Struct(context))
 }
 
-pub struct SetInt;
+fn set_float(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for SetInt {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
+    let to_set = args.pop().unwrap();
+    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let to_set = args.pop().unwrap();
-        let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let data = context.ref_field(CTXT_FLOAT).unwrap();
+    let mut data = data.borrow_mut();
+    let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
 
-        let data = context.ref_field(CTXT_INT).unwrap();
-        let mut data = data.borrow_mut();
-        let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    data.set_field(name, to_set);
 
-        data.set_field(name, to_set);
-
-        Value::Struct(context)
-    }
+    Ok(Value::Struct(context))
 }
 
-pub struct SetFloat;
+fn get_flag(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for SetFloat {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
+    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let to_set = args.pop().unwrap();
-        let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let data = context.ref_field(CTXT_FLAG).unwrap();
+    let data = data.borrow();
+    let data = irmatch!(*data; Value::Struct(ref st) => st);
 
-        let data = context.ref_field(CTXT_FLOAT).unwrap();
-        let mut data = data.borrow_mut();
-        let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    let value = data.get_field(&name)
+        .expect(&format!("Unknown flag {}", name));
 
-        data.set_field(name, to_set);
-
-        Value::Struct(context)
-    }
+    Ok(value)
 }
 
-pub struct GetFlag;
+fn get_int(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for GetFlag {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
+    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let data = context.ref_field(CTXT_INT).unwrap();
+    let data = data.borrow();
+    let data = irmatch!(*data; Value::Struct(ref st) => st);
 
-        let data = context.ref_field(CTXT_FLAG).unwrap();
-        let data = data.borrow();
-        let data = irmatch!(*data; Value::Struct(ref st) => st);
+    let value = data.get_field(&name)
+        .expect(&format!("Unknown int {}", name));
 
-        let value = data.get_field(&name)
-            .expect(&format!("Unknown flag {}", name));
-
-        value
-    }
+    Ok(value)
 }
 
-pub struct GetInt;
+fn get_float(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let mut args = args.unwrap();
 
-impl BuiltinFn for GetInt {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
+    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-        let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let data = context.ref_field(CTXT_FLOAT).unwrap();
+    let data = data.borrow();
+    let data = irmatch!(*data; Value::Struct(ref st) => st);
 
-        let data = context.ref_field(CTXT_INT).unwrap();
-        let data = data.borrow();
-        let data = irmatch!(*data; Value::Struct(ref st) => st);
+    let value = data.get_field(&name)
+        .expect(&format!("Unknown float {}", name));
 
-        let value = data.get_field(&name)
-            .expect(&format!("Unknown int {}", name));
-
-        value
-    }
-}
-
-pub struct GetFloat;
-
-impl BuiltinFn for GetFloat {
-    fn execute(&self, args: Option<Vec<Value>>) -> Value {
-        let mut args = args.unwrap();
-
-        let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-        let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
-
-        let data = context.ref_field(CTXT_FLOAT).unwrap();
-        let data = data.borrow();
-        let data = irmatch!(*data; Value::Struct(ref st) => st);
-
-        let value = data.get_field(&name)
-            .expect(&format!("Unknown float {}", name));
-
-        value
-    }
+    Ok(value)
 }
