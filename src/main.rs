@@ -20,4 +20,6 @@ mod title_screen;
 use crate::game::GameInstance;
 
 fn main() {
+    let library = library::scan_library();
+    let story = title_screen::title_screen(&library);
 }
