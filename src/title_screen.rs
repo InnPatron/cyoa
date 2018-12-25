@@ -12,8 +12,8 @@ pub fn title_screen(handles: &[StoryHandle]) -> Option<&StoryHandle> {
                   .map(|handle| &handle.metadata.name)
                   .enumerate());
 
-    display::prompt(true, false);
     loop {
+        display::prompt(true, false);
         match number() {
             InputResult::Quit => return None,
             InputResult::Invalid(_) => println!("Unknown index"),
