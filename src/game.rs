@@ -6,7 +6,7 @@ use std::cell::{Cell, RefCell};
 use std::fs::File;
 
 use failure::Error;
-use smpl::interpreter::{AVM, Struct as SmplStruct, Value, FnHandle, Std};
+use smpl::interpreter::{AVM, Struct as SmplStruct, Value, FnHandle, Std, VmModule};
 
 use crate::library::StoryHandle;
 use crate::assets::*;
@@ -37,9 +37,15 @@ pub struct GameInstance {
 impl GameInstance {
     pub fn new(handle: &StoryHandle) -> Result<GameInstance, Error> {
 
-        let _assets = StoryAssets::load(handle)?;
+        let assets = StoryAssets::load(handle)?;
 
-        let scripts = vec![script_lib::vm_module()];
+        let mut scripts = assets.scripts
+            .into_iter()
+            .map(|module| VmModule::new(module))
+            .collect::<Vec<_>>();
+
+        scripts.push(script_lib::vm_module());
+
         let vm = AVM::new(Std::std(), scripts)
             .map_err(|e| GameErr::ScriptErr(format!("Failed to start VM.\n{:?}", e)))?;
 
