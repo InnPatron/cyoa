@@ -1,16 +1,16 @@
 mod main;
 
+use log;
 use rt;
 use str;
 
 fn start(context: rt::Ctxt) -> rt::Ctxt {
     let context = context;
 
-    return rt::set_font(context, "common")
-        |> rt::set_int("health", 100)
+    log::println("You sit alone in a bar with a giant mug of beer in front of you.");
+
+    return rt::set_int(context, "health", 100)
         |> rt::set_int("counter", 0)
-        |> rt::display(
-                       "You sit alone in a bar with a giant mug of beer in front of you.")
         |> prompt();
 }
 
@@ -35,13 +35,14 @@ fn drink(context: rt::Ctxt) -> rt::Ctxt {
         |> rt::set_int("counter", counter);
 
     if current_hp < 0 {
-        context = rt::display(context, "YOU DIED")
-            |> rt::clear_choices();
+        log::println("YOU DIED");
+        return rt::clear_choices(context)
+            |> rt::set_state(1);
     } else {
         let message = str::to_string("You take a sip. This is drink number ",
                                      counter,
                                      ". What now?");
-        context = rt::display(context, message);
+        log::println(message);
     }
 
     return prompt(context);
