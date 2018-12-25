@@ -7,8 +7,7 @@ use smpl::{parse_module, UnparsedModule};
 use smpl::interpreter::*;
 
 pub const STATE_RUN: i32 = 0;
-pub const STATE_IMAGE: i32 = 1;
-pub const STATE_END: i32 = 2;
+pub const STATE_END: i32 = 1;
 
 const RT_MOD: &'static str = "rt";
 
@@ -71,15 +70,15 @@ pub fn vm_module() -> VmModule {
     let parsed = parse_module(UnparsedModule::anonymous(RT_LIB)).unwrap();
     let vm_module = VmModule::new(parsed)
         .add_builtin(RT_CHOICE, choice)
-        .add_builtin(RT_CHOICE, clear_choices)
+        .add_builtin(RT_CLEAR_CHOICES, clear_choices)
 
-        .add_builtin(RT_CHOICE, set_flag)
-        .add_builtin(RT_CHOICE, set_int)
-        .add_builtin(RT_CHOICE, set_float)
+        .add_builtin(RT_SET_FLAG, set_flag)
+        .add_builtin(RT_SET_INT, set_int)
+        .add_builtin(RT_SET_FLOAT, set_float)
 
-        .add_builtin(RT_CHOICE, get_flag)
-        .add_builtin(RT_CHOICE, get_int)
-        .add_builtin(RT_CHOICE, get_float)
+        .add_builtin(RT_GET_FLAG, get_flag)
+        .add_builtin(RT_GET_INT, get_int)
+        .add_builtin(RT_GET_FLOAT, get_float)
     ;
 
     vm_module
