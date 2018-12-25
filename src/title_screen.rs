@@ -13,7 +13,8 @@ pub fn title_screen(handles: &[StoryHandle]) -> Option<&StoryHandle> {
                   .iter()
                   .map(|handle| &handle.metadata.name)
                   .enumerate());
-    
+
+    display::prompt(true, false);
     loop {
         match number() {
             InputResult::Quit => return None,
