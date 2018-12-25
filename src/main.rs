@@ -1,64 +1,51 @@
 extern crate smpl;
-#[macro_use]
-extern crate conrod;
 extern crate find_folder;
-extern crate image;
 extern crate toml;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate irmatch;
+#[macro_use]
+extern crate failure;
 
+mod input;
 mod script_lib;
 mod library;
 mod game;
-mod title_screen;
-mod game_screen;
 mod assets;
+mod display;
 
-use conrod::backend::glium::glium;
+mod game_screen;
+mod title_screen;
 
-use game::GameInstance;
-
-use std::fs::File;
-use std::io::Read;
+use failure::Error;
 
 fn main() {
-    const WIDTH: u32 = 1080;
-    const HEIGHT: u32 = 720;
+    let library = library::scan_library();
+    let story = title_screen::title_screen(&library);
 
-    let mut events_loop = glium::glutin::EventsLoop::new();
-    let window = glium::glutin::WindowBuilder::new()
-        .with_dimensions(WIDTH, HEIGHT);
-    let context = glium::glutin::ContextBuilder::new()
-        .with_vsync(true);
-    let display = glium::Display::new(window, context, &events_loop).unwrap();
+    match run(story) {
+        Ok(_) => (),
 
-    let mut ui = conrod::UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    }
+}
 
-    let mut renderer = conrod::backend::glium::Renderer::new(&display).unwrap();
-    let mut image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
+fn run(story: Option<&library::StoryHandle>) -> Result<(), Error> {
+    match story {
+        Some(story) => {
+            let game_instance = game::GameInstance::new(story)?;
 
-    loop {
-        let handle = match title_screen::handle_title_screen(&mut events_loop, &mut ui, display.clone(), &mut renderer, &image_map) {
-            Some(handle) => handle,
-            None => return,
-        };
+            game_screen::game_screen(game_instance)?;
 
-        let instance = match GameInstance::new(&handle, &mut ui, &display, &mut image_map) {
-            Ok(instance) => instance,
+            Ok(())
+        }
 
-            Err(e) => {
-                eprintln!("{}", e);
-                return;
-            }
-        };
-
-        game_screen::handle_game_screen(&mut events_loop, 
-                                        &mut ui, 
-                                        display.clone(), 
-                                        &mut renderer, 
-                                        &image_map, 
-                                        instance);
+        None => {
+            Ok(())
+        }
     }
 }

@@ -1,181 +1,29 @@
-use find_folder::Search;
-use conrod;
-use conrod::{Scalar, Colorable, Widget, Sizeable, Positionable, Borderable, Labelable};
-use conrod::backend::glium::glium;
-use conrod::text::font::Id;
-use conrod::widget;
-use conrod::color;
-use conrod::event::Input;
-use conrod::input::{Button, Key};
+use crate::library::StoryHandle;
 
-use super::library;
-use super::library::StoryHandle;
+use crate::display;
+use crate::input::{number, InputResult};
 
-widget_ids! {
-        struct TitleIds { 
-            canvas, 
-            option_row, 
-            title_row, 
-            story_list, 
-            scrollbar, 
-            title, 
-            option_right, 
-            option_left, 
-            game_start
-        }
-}
+pub fn title_screen(handles: &[StoryHandle]) -> Option<&StoryHandle> {
 
-pub fn handle_title_screen(events_loop: &mut glium::glutin::EventsLoop, 
-                       ui: &mut conrod::Ui, 
-                       display: glium::Display,
-                       renderer: &mut conrod::backend::glium::Renderer,
-                       image_map: &conrod::image::Map<glium::texture::Texture2d>
-                       ) -> Option<StoryHandle> {
-    let title_ids = TitleIds::new(ui.widget_id_generator());
-    let assets = Search::KidsThenParents(3, 3).for_folder("assets").expect("Could not find assets folder");
-    let noto_sans = assets.join("fonts/NotoSans");
-    let mut handles = library::scan_library();
+    println!("CYOA\n");
 
-    let font = ui.fonts.insert_from_file(noto_sans.join("NotoSans-Regular.ttf")).unwrap();
-    let mut selection = None;
+    display::list(handles
+                  .iter()
+                  .map(|handle| &handle.metadata.name)
+                  .enumerate());
 
-    events_loop.run_forever(|event| {
-        match event.clone() {
-            glium::glutin::Event::WindowEvent { event, .. } => match event {
-                glium::glutin::WindowEvent::Closed => return glium::glutin::ControlFlow::Break,
-                _ => (),
-            },
-            _ => (),
-        }
-
-        // Use the `winit` backend feature to convert the winit event to a conrod one.
-        let input = match conrod::backend::winit::convert_event(event, &display) {
-            None => return glium::glutin::ControlFlow::Continue,
-            Some(input) => input,
-        };
-
-        if let Input::Press(ref button) = input {
-            if let Button::Keyboard(ref key) = *button {
-                match *key {
-                    Key::Escape => return glium::glutin::ControlFlow::Break,
-                    _ => (),
+    display::prompt(true, false);
+    loop {
+        match number() {
+            InputResult::Quit => return None,
+            InputResult::Invalid(_) => println!("Unknown index"),
+            InputResult::Item(i) => {
+                if i < 0 || i as usize >= handles.len() {
+                    println!("Index out of range");
+                } else {
+                    return Some(&handles[i as usize])
                 }
             }
         }
-
-        // Handle the input with the `Ui`.
-        ui.handle_event(input);
-        {
-            if draw_title_screen(ui.set_widgets(), &title_ids, &font, &handles, &mut selection) {
-                // Play button hit
-                if selection.is_some() {
-                    return glium::glutin::ControlFlow::Break;
-                }
-            }
-        }
-
-        if let Some(primitives) = ui.draw_if_changed() {
-            renderer.fill(&display, primitives, &image_map);
-            let mut target = display.draw();
-            //target.clear_color(0.0, 0.0, 0.0, 1.0);
-            glium::Surface::clear_color(&mut target, 0.0, 0.0, 0.0, 1.0);
-            renderer.draw(&display, &mut target, &image_map).unwrap();
-            target.finish().unwrap();
-        }
-
-        glium::glutin::ControlFlow::Continue
-    });
-
-    if let Some(selection) = selection {
-        Some(handles.remove(selection))
-    } else {
-        None
     }
-}
-
-fn draw_title_screen(ref mut ui: conrod::UiCell, ids: &TitleIds, font: &Id, handles: &[StoryHandle], selection: &mut Option<usize>) -> bool {
-
-    let option_inner = &[
-        (ids.option_left, widget::Canvas::new()
-         .color(color::GREY)
-         .length_weight(1.8)),
-        (ids.option_right, widget::Canvas::new().color(color::GREY))
-        ];
-    let option_row = widget::Canvas::new()
-        .flow_right(option_inner);
-    widget::Canvas::new().flow_down(&[
-        (ids.title_row, widget::Canvas::new().color(color::BLACK)),
-        (ids.option_row, option_row)
-    ])
-        .set(ids.canvas, ui);
-
-    widget::Text::new("CYOA")
-        .font_id(font.clone())
-        .middle_of(ids.title_row)
-        .center_justify()
-        .color(color::WHITE)
-        .font_size(120)
-        .set(ids.title, ui);
-    
-    let submit = widget::Button::new()
-        .label("PLAY")
-        .center_justify_label()
-        .padded_wh_of(ids.option_right, 10.)
-        .middle_of(ids.option_right)
-        .set(ids.game_start, ui)
-        .was_clicked();
-
-    const LIST_WPAD: Scalar = 20.0;
-    let items = handles.len();
-    let item_h = 50.0;
-    let font_size = item_h as conrod::FontSize / 2;
-    let (mut events, scrollbar) = widget::ListSelect::single(items)
-        .flow_down()
-        .item_size(item_h)
-        .scrollbar_next_to()
-        .padded_w_of(ids.option_left, LIST_WPAD)
-        .top_left_with_margins_on(ids.option_left, 20.0, 20.0)
-        .set(ids.story_list, ui);
-    
-
-    while let Some(event) = events.next(ui, |_| true) {
-        use conrod::widget::list_select::Event;
-        match event {
-            Event::Item(item) => {
-                let label = &handles[item.i].metadata.name;
-                let (color, label_color) = { 
-                    let not_selected = (color::LIGHT_GREY, color::BLACK);
-                    let selected = (color::LIGHT_GREY, color::RED);
-                    match *selection {
-                        Some(i) => {
-                            if i == item.i {
-                                selected
-                            } else {
-                                not_selected
-                            }
-                        }
-
-                        None => not_selected
-                    }  
-                };
-                let button = widget::Button::new()
-                    .border(0.0)
-                    .color(color)
-                    .label(label)
-                    .left_justify_label()
-                    .label_font_size(font_size)
-                    .label_color(label_color);
-                item.set(button, ui);
-            }
-
-            Event::Selection(index) => {
-                *selection = Some(index);
-            }
-
-            _ => (),
-        }
-    }
-
-    if let Some(s) = scrollbar { s.set(ui); }
-    submit
 }
