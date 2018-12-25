@@ -1,6 +1,3 @@
-use std::io::Write;
-use std::io;
-
 use failure::Error;
 
 use crate::game::GameInstance;
@@ -46,7 +43,7 @@ fn game_iteration(game_instance: &mut GameInstance) -> Result<Decision, Error> {
 
     let choice = loop {
 
-        prompt();
+        display::prompt(true, false);
         match number() {
 
             InputResult::Quit => {
@@ -71,9 +68,4 @@ fn game_iteration(game_instance: &mut GameInstance) -> Result<Decision, Error> {
     game_instance.execute_choice(choice)?;
 
     return Ok(Decision::Continue);
-}
-
-fn prompt() {
-    print!("> ");
-    io::stdout().flush().expect("IO ERROR");
 }
