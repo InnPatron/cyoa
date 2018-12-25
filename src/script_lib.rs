@@ -21,10 +21,7 @@ const RT_GET_INT: &'static str = "get_int";
 const RT_GET_FLOAT: &'static str = "get_float";
 
 pub const CTXT_STATE: &'static str = "state";
-pub const CTXT_BACKGROUND: &'static str = "background";
-pub const CTXT_DISPLAY: &'static str = "display";
 pub const CTXT_CHOICE: &'static str = "choice_list";
-pub const CTXT_FONT: &'static str = "font";
 pub const CTXT_FLAG: &'static str = "flag_data";
 pub const CTXT_INT: &'static str = "int_data";
 pub const CTXT_FLOAT: &'static str = "float_data";
@@ -40,15 +37,6 @@ pub fn new_context() -> Struct {
 
     s.set_field(CTXT_STATE.to_owned(),
                 Value::Int(STATE_RUN));
-
-    s.set_field(CTXT_BACKGROUND.to_owned(), 
-                Value::String("".to_string()));
-
-    s.set_field(CTXT_DISPLAY.to_owned(), 
-                Value::String("".to_string()));
-
-    s.set_field(CTXT_FONT.to_owned(), 
-                Value::String("".to_string()));
 
     s.set_field(CTXT_CHOICE.to_owned(), 
                 Value::Array(Vec::new()));
