@@ -58,7 +58,13 @@ impl GameInstance {
 
         // Assume fn init() is Fn(Context) -> Context
         let result = vm.eval_fn_args_sync(init, Some(vec![Value::Struct(context)]))?;
-        let result = irmatch!(result; Value::Struct(s) => s);
+        let result = match result {
+            Value::Struct(s) => s,
+
+            _ => return Err(GameErr::ScriptErr(format!("{} should return a context",
+                                                       INIT_FN))
+                            .into()),
+        };
 
         let context = Context(result);
         
