@@ -2,14 +2,12 @@ mod rt;
 
 struct Image { }
 
+#[opaque]
 struct Ctxt { 
     state: int,
-    choice_list: [Choice; 100],
-    flag_data: Data,
-    int_data: Data,
-    float_data: Data,
 }
 
+#[opaque]
 struct Data { }
 
 struct Choice {
