@@ -15,6 +15,7 @@ mod game;
 mod assets;
 mod display;
 
+mod game_screen;
 mod title_screen;
 
 use crate::game::GameInstance;
