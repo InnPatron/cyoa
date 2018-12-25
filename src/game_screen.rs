@@ -51,7 +51,7 @@ fn game_iteration(game_instance: &mut GameInstance) -> Result<Decision, Error> {
                 return Ok(Decision::Quit);
             }
 
-            InputResult::Invalid(String) => {
+            InputResult::Invalid(_) => {
                 println!("Unknown choice.");
             },
 

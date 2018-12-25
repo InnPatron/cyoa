@@ -9,8 +9,6 @@ use smpl::interpreter::*;
 pub const STATE_RUN: i32 = 0;
 pub const STATE_END: i32 = 1;
 
-const RT_MOD: &'static str = "rt";
-
 const RT_CHOICE: &'static str = "choice";
 const RT_CLEAR_CHOICES: &'static str = "clear_choices";
 

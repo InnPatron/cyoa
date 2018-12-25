@@ -1,9 +1,5 @@
-use std::path::PathBuf;
-use std::collections::HashMap;
-use std::fs;
 use std::rc::Rc;
-use std::cell::{Cell, RefCell};
-use std::fs::File;
+use std::cell:: RefCell;
 
 use failure::Error;
 use smpl::interpreter::{AVM, Struct as SmplStruct, Value, FnHandle, Std, VmModule};
@@ -103,24 +99,6 @@ impl Context {
         irmatch!(self.0.get_field(script_lib::CTXT_STATE)
                  .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_STATE));
                  Value::Int(i) => i)
-    }
-
-    pub fn background(&self) -> String {
-        irmatch!(self.0.get_field(script_lib::CTXT_BACKGROUND)
-                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_BACKGROUND));
-                 Value::String(s) => s)
-    }
-
-    pub fn display(&self) -> String {
-        irmatch!(self.0.get_field(script_lib::CTXT_DISPLAY)
-                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_DISPLAY));
-                 Value::String(s) => s)
-    }
-
-    pub fn font(&self) -> String {
-        irmatch!(self.0.get_field(script_lib::CTXT_FONT)
-                 .expect(&format!("Ctxt missing '{}' field", script_lib::CTXT_FONT));
-                 Value::String(s) => s)
     }
 
     pub fn choices(&self) -> Vec<Choice> {

@@ -1,6 +1,4 @@
 use crate::library::StoryHandle;
-use crate::assets::*;
-use crate::script_lib;
 
 use crate::display;
 use crate::input::{number, InputResult};
@@ -18,7 +16,7 @@ pub fn title_screen(handles: &[StoryHandle]) -> Option<&StoryHandle> {
     loop {
         match number() {
             InputResult::Quit => return None,
-            InputResult::Invalid(String) => println!("Unknown index"),
+            InputResult::Invalid(_) => println!("Unknown index"),
             InputResult::Item(i) => {
                 if i < 0 || i as usize >= handles.len() {
                     println!("Index out of range");
