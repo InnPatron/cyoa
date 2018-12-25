@@ -11,12 +11,14 @@ pub fn number() -> InputResult<i64> {
     io::stdin()
         .read_line(&mut input).unwrap();
 
-    if input == "q" {
+    let trimmed = input.trim();
+
+    if trimmed == "q" {
         return InputResult::Quit;
     }
 
-    match input.parse::<i64>() {
+    match trimmed.parse::<i64>() {
         Ok(i) => InputResult::Item(i),
-        Err(_) => InputResult::Invalid(input)
+        Err(_) => InputResult::Invalid(trimmed.to_string()),
     }
 }
