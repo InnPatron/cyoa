@@ -8,9 +8,9 @@ use std::fs::File;
 use failure::Error;
 use smpl::interpreter::{AVM, Struct as SmplStruct, Value, FnHandle, Std};
 
-use library::StoryHandle;
-use assets::*;
-use script_lib;
+use crate::library::StoryHandle;
+use crate::assets::*;
+use crate::script_lib;
 
 pub const MAIN_MODULE: &'static str = "main";
 pub const INIT_FN: &'static str = "start";
@@ -37,10 +37,10 @@ pub struct GameInstance {
 impl GameInstance {
     pub fn new(handle: &StoryHandle) -> Result<GameInstance, Error> {
 
-        let assets = StoryAssets::load(handle)?;
+        let _assets = StoryAssets::load(handle)?;
 
         let scripts = vec![script_lib::vm_module()];
-        let mut vm = AVM::new(Std::std(), scripts)
+        let vm = AVM::new(Std::std(), scripts)
             .map_err(|e| GameErr::ScriptErr(format!("Failed to start VM.\n{:?}", e)))?;
 
         let init = vm.query_module(MAIN_MODULE, INIT_FN)

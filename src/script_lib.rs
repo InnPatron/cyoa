@@ -89,11 +89,11 @@ fn choice(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
     let display = args.pop().unwrap();
     let handler = args.pop().unwrap();
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let list = context.ref_field(CTXT_CHOICE).unwrap();
     let mut list = list.borrow_mut();
-    let mut list = irmatch!(*list; Value::Array(ref mut vec) => vec);
+    let list = irmatch!(*list; Value::Array(ref mut vec) => vec);
 
     let mut choice = Struct::new();
     choice.set_field(CHOICE_HANDLE.to_owned(), handler);
@@ -107,11 +107,11 @@ fn choice(args: Option<Vec<Value>>) -> Result<Value, Error> {
 fn clear_choices(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let list = context.ref_field(CTXT_CHOICE).unwrap();
     let mut list = list.borrow_mut();
-    let mut list = irmatch!(*list; Value::Array(ref mut vec) => vec);
+    let list = irmatch!(*list; Value::Array(ref mut vec) => vec);
 
     list.clear();
 
@@ -123,11 +123,11 @@ fn set_flag(args: Option<Vec<Value>>) -> Result<Value, Error> {
 
     let to_set = args.pop().unwrap();
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let data = context.ref_field(CTXT_FLAG).unwrap();
     let mut data = data.borrow_mut();
-    let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    let data = irmatch!(*data; Value::Struct(ref mut st) => st);
 
     data.set_field(name, to_set);
 
@@ -139,11 +139,11 @@ fn set_int(args: Option<Vec<Value>>) -> Result<Value, Error> {
 
     let to_set = args.pop().unwrap();
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let data = context.ref_field(CTXT_INT).unwrap();
     let mut data = data.borrow_mut();
-    let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    let data = irmatch!(*data; Value::Struct(ref mut st) => st);
 
     data.set_field(name, to_set);
 
@@ -155,11 +155,11 @@ fn set_float(args: Option<Vec<Value>>) -> Result<Value, Error> {
 
     let to_set = args.pop().unwrap();
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let data = context.ref_field(CTXT_FLOAT).unwrap();
     let mut data = data.borrow_mut();
-    let mut data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    let data = irmatch!(*data; Value::Struct(ref mut st) => st);
 
     data.set_field(name, to_set);
 
@@ -170,7 +170,7 @@ fn get_flag(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let data = context.ref_field(CTXT_FLAG).unwrap();
     let data = data.borrow();
@@ -186,7 +186,7 @@ fn get_int(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let data = context.ref_field(CTXT_INT).unwrap();
     let data = data.borrow();
@@ -202,7 +202,7 @@ fn get_float(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let data = context.ref_field(CTXT_FLOAT).unwrap();
     let data = data.borrow();

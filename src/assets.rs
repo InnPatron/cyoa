@@ -22,7 +22,7 @@ pub struct StoryAssets {
 
 impl StoryAssets {
     pub fn load(handle: &StoryHandle) -> Result<StoryAssets, AssetErr> {
-        let assets = find_folder::Search::Kids(1)
+        let _assets = find_folder::Search::Kids(1)
             .of(handle.root.clone())
             .for_folder("assets")
             .expect("Unable to read assets folder");
@@ -46,7 +46,7 @@ fn load_scripts(scripts_folder: PathBuf) -> Result<Vec<ParsedModule>, AssetErr> 
             continue;
         } else {
             let path = entry.path();
-            let name = path.file_stem()
+            let _name = path.file_stem()
                 .unwrap()
                 .to_str()
                 .unwrap()

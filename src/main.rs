@@ -17,7 +17,7 @@ mod display;
 
 mod title_screen;
 
-use game::GameInstance;
+use crate::game::GameInstance;
 
 fn main() {
 }
