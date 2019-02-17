@@ -54,10 +54,8 @@ impl GameInstance {
                                               INIT_FN,
                                               MAIN_MODULE)))?;
 
-        let context = script_lib::new_context();
-
         // Assume fn init() is Fn(Context) -> Context
-        let result = vm.eval_fn_args_sync(init, Some(vec![Value::Struct(context)]))?;
+        let result = vm.eval_fn_args_sync(init, None)?;
         let result = match result {
             Value::Struct(s) => s,
 
