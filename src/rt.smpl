@@ -1,33 +1,22 @@
 mod rt;
 
-struct Image { }
-
 #[opaque]
-struct Ctxt { 
-    state: int,
-}
+struct Data(type T) { }
 
-#[opaque]
-struct Data { }
-
-struct Choice {
-    handle: fn(Ctxt) -> Ctxt,
+struct Choice(type T) {
+    handle: fn(T) -> T,
     display: String
 }
 
-builtin fn choice(context: Ctxt, handler: fn(Ctxt) -> Ctxt, display: String) -> Ctxt;
-builtin fn clear_choices(context: Ctxt) -> Ctxt;
+builtin fn init_ctxt(type C)(c: C) -> C;
 
-fn set_state(context: Ctxt, state: int) -> Ctxt {
-    context.state = state;
+builtin fn new_data(type T)() -> Data(type T);
 
-    return context;
-}
+// C requires a 'state' field and a 'choice_list' field
+builtin fn choice(type C)(context: C, handler: fn(C) -> C, display: String) -> C;
+builtin fn clear_choices(type C)(context: C) -> C;
 
-builtin fn set_flag(context: Ctxt, name: String, b: bool) -> Ctxt;
-builtin fn set_int(context: Ctxt, name: String, i: int) -> Ctxt;
-builtin fn set_float(context: Ctxt, name: String, f: float) -> Ctxt;
+builtin fn set_state(type C)(context: C, state: int) -> C;
 
-builtin fn get_flag(context: Ctxt, name: String) -> bool;
-builtin fn get_int(context: Ctxt, name: String) -> int;
-builtin fn get_float(context: Ctxt, name: String) -> float;
+builtin fn set_data(type T)(data: Data(type T), key: String, v: T) -> Data(type T);
+builtin fn get_data(type T)(data: Data(type T), key: String) -> T;

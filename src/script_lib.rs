@@ -12,19 +12,16 @@ pub const STATE_END: i32 = 1;
 const RT_CHOICE: &'static str = "choice";
 const RT_CLEAR_CHOICES: &'static str = "clear_choices";
 
-const RT_SET_FLAG: &'static str = "set_flag";
-const RT_SET_INT: &'static str = "set_int";
-const RT_SET_FLOAT: &'static str = "set_float";
+const RT_INIT_CTXT: &'static str = "init_ctxt";
+const RT_NEW_DATA: &'static str = "new_data";
 
-const RT_GET_FLAG: &'static str = "get_flag";
-const RT_GET_INT: &'static str = "get_int";
-const RT_GET_FLOAT: &'static str = "get_float";
+const RT_SET_STATE: &'static str = "set_state";
+
+const RT_SET_DATA: &'static str = "set_data";
+const RT_GET_DATA: &'static str = "get_data";
 
 pub const CTXT_STATE: &'static str = "state";
 pub const CTXT_CHOICE: &'static str = "choice_list";
-pub const CTXT_FLAG: &'static str = "flag_data";
-pub const CTXT_INT: &'static str = "int_data";
-pub const CTXT_FLOAT: &'static str = "float_data";
 
 pub const CHOICE_HANDLE: &'static str = "handle";
 pub const CHOICE_DISPLAY: &'static str = "display";
@@ -32,42 +29,28 @@ pub const CHOICE_DISPLAY: &'static str = "display";
 
 const RT_LIB: &'static str = include_str!("rt.smpl");
 
-pub fn new_context() -> Struct {
-    let mut s = Struct::new();
-
-    s.set_field(CTXT_STATE.to_owned(),
-                Value::Int(STATE_RUN));
-
-    s.set_field(CTXT_CHOICE.to_owned(), 
-                Value::Array(Vec::new()));
-
-    s.set_field(CTXT_FLAG.to_owned(), 
-                Value::Struct(Struct::new()));
-
-    s.set_field(CTXT_INT.to_owned(), 
-                Value::Struct(Struct::new()));
-
-    s.set_field(CTXT_FLOAT.to_owned(), 
-                Value::Struct(Struct::new()));
-    s
-}
-
 pub fn vm_module() -> VmModule {
     let parsed = parse_module(UnparsedModule::anonymous(RT_LIB)).unwrap();
     let vm_module = VmModule::new(parsed)
+        .add_builtin(RT_INIT_CTXT, init_ctxt)
         .add_builtin(RT_CHOICE, choice)
         .add_builtin(RT_CLEAR_CHOICES, clear_choices)
-
-        .add_builtin(RT_SET_FLAG, set_flag)
-        .add_builtin(RT_SET_INT, set_int)
-        .add_builtin(RT_SET_FLOAT, set_float)
-
-        .add_builtin(RT_GET_FLAG, get_flag)
-        .add_builtin(RT_GET_INT, get_int)
-        .add_builtin(RT_GET_FLOAT, get_float)
+        .add_builtin(RT_SET_STATE, set_state)
+        .add_builtin(RT_SET_DATA, set_data)
+        .add_builtin(RT_GET_DATA, get_data)
+        .add_builtin(RT_NEW_DATA, new_data)
     ;
 
     vm_module
+}
+
+fn init_ctxt(args: Option<Vec<Value>>) -> Result<Value, Error> {
+    let c = args.unwrap().pop().unwrap();
+    let mut c = irmatch!(c; Value::Struct(c) => c);
+    c.set_field(CTXT_STATE.to_string(), Value::Int(STATE_RUN));
+    c.set_field(CTXT_CHOICE.to_string(), Value::Array(Vec::new()));
+
+    Ok(Value::Struct(c))
 }
 
 fn choice(args: Option<Vec<Value>>) -> Result<Value, Error> {
@@ -103,98 +86,41 @@ fn clear_choices(args: Option<Vec<Value>>) -> Result<Value, Error> {
     Ok(Value::Struct(context))
 }
 
-fn set_flag(args: Option<Vec<Value>>) -> Result<Value, Error> {
+fn set_state(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
-    let to_set = args.pop().unwrap();
-    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let new_state = args.pop().unwrap();
+    let mut context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-    let data = context.ref_field(CTXT_FLAG).unwrap();
-    let mut data = data.borrow_mut();
-    let data = irmatch!(*data; Value::Struct(ref mut st) => st);
-
-    data.set_field(name, to_set);
+    context.set_field(CTXT_STATE.to_owned(), new_state);
 
     Ok(Value::Struct(context))
 }
 
-fn set_int(args: Option<Vec<Value>>) -> Result<Value, Error> {
+fn new_data(_args: Option<Vec<Value>>) -> Result<Value, Error> {
+    Ok(Value::Struct(Struct::new()))
+}
+
+fn set_data(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
     let to_set = args.pop().unwrap();
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
+    let mut data_s = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
-    let data = context.ref_field(CTXT_INT).unwrap();
-    let mut data = data.borrow_mut();
-    let data = irmatch!(*data; Value::Struct(ref mut st) => st);
+    data_s.set_field(name, to_set);
 
-    data.set_field(name, to_set);
-
-    Ok(Value::Struct(context))
+    Ok(Value::Struct(data_s))
 }
 
-fn set_float(args: Option<Vec<Value>>) -> Result<Value, Error> {
-    let mut args = args.unwrap();
-
-    let to_set = args.pop().unwrap();
-    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
-
-    let data = context.ref_field(CTXT_FLOAT).unwrap();
-    let mut data = data.borrow_mut();
-    let data = irmatch!(*data; Value::Struct(ref mut st) => st);
-
-    data.set_field(name, to_set);
-
-    Ok(Value::Struct(context))
-}
-
-fn get_flag(args: Option<Vec<Value>>) -> Result<Value, Error> {
+fn get_data(args: Option<Vec<Value>>) -> Result<Value, Error> {
     let mut args = args.unwrap();
 
     let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
-
-    let data = context.ref_field(CTXT_FLAG).unwrap();
-    let data = data.borrow();
-    let data = irmatch!(*data; Value::Struct(ref st) => st);
+    let data = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
 
     let value = data.get_field(&name)
         .expect(&format!("Unknown flag {}", name));
-
-    Ok(value)
-}
-
-fn get_int(args: Option<Vec<Value>>) -> Result<Value, Error> {
-    let mut args = args.unwrap();
-
-    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
-
-    let data = context.ref_field(CTXT_INT).unwrap();
-    let data = data.borrow();
-    let data = irmatch!(*data; Value::Struct(ref st) => st);
-
-    let value = data.get_field(&name)
-        .expect(&format!("Unknown int {}", name));
-
-    Ok(value)
-}
-
-fn get_float(args: Option<Vec<Value>>) -> Result<Value, Error> {
-    let mut args = args.unwrap();
-
-    let name = irmatch!(args.pop().unwrap(); Value::String(s) => s);
-    let context = irmatch!(args.pop().unwrap(); Value::Struct(c) => c);
-
-    let data = context.ref_field(CTXT_FLOAT).unwrap();
-    let data = data.borrow();
-    let data = irmatch!(*data; Value::Struct(ref st) => st);
-
-    let value = data.get_field(&name)
-        .expect(&format!("Unknown float {}", name));
 
     Ok(value)
 }
