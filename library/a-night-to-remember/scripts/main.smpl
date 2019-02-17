@@ -4,40 +4,52 @@ use log;
 use rt;
 use str;
 
-fn start(context: rt::Ctxt) -> rt::Ctxt {
-    let context = context;
+struct Ctxt {
+    data: rt::Data(type int)
+}
+
+fn start() -> Ctxt {
+
+    let c = init Ctxt {
+        data: rt::new_data(type int)(),
+    };
+
+    c = rt::init_ctxt(type Ctxt)(c);
 
     log::println("You sit alone in a bar with a giant mug of beer in front of you.");
 
-    return rt::set_int(context, "health", 100)
-        |> rt::set_int("counter", 0)
-        |> prompt();
+    c.data = rt::set_data(type int)(c.data, "health", 100)
+        |> rt::set_data(type int)("counter", 0);
+    
+    c = prompt(c);
+
+    return c;
 }
 
-fn prompt(context: rt::Ctxt) -> rt::Ctxt {
+fn prompt(context: Ctxt) -> Ctxt {
 
-    return rt::clear_choices(context)
-        |> rt::choice(drink,
+    return rt::clear_choices(type Ctxt)(context)
+        |> rt::choice(type Ctxt)(drink,
                       "Take a sip");
 
     return context;
 }
 
-fn drink(context: rt::Ctxt) -> rt::Ctxt {
+fn drink(context: Ctxt) -> Ctxt {
 
-    let current_hp = rt::get_int(context, "health");
-    let counter = rt::get_int(context, "counter");
+    let current_hp = rt::get_data(type int)(context.data, "health");
+    let counter = rt::get_data(type int)(context.data, "counter");
     
     counter = counter + 1;
     current_hp = current_hp - 10;
 
-    context = rt::set_int(context, "health", current_hp)
-        |> rt::set_int("counter", counter);
+    context.data = rt::set_data(type int)(context.data, "health", current_hp)
+        |> rt::set_data(type int)("counter", counter);
 
     if current_hp < 0 {
         log::println("YOU DIED");
-        return rt::clear_choices(context)
-            |> rt::set_state(1);
+        return rt::clear_choices(type Ctxt)(context)
+            |> rt::set_state(type Ctxt)(1);
     } else {
         let message = str::to_string("You take a sip. This is drink number ",
                                      counter,
